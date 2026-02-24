@@ -1,5 +1,5 @@
 from typing import List, Optional
-from core_app.models.item import Item
+from core_app.domain.models.item import Item
 
 items_db: List[Item] = []
 
