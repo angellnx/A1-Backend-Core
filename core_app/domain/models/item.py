@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class TipoItem(BaseModel):
+class Item(BaseModel):
     id_item: int
-    nm_item: str
-    tipo_item: str # FK para TipoItem
+    item_name: str
+    item_type: str  # FK to ItemType

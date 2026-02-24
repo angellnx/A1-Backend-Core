@@ -1,4 +1,4 @@
-from core_app.entities.item import Item
+from core_app.domain.models.item import Item
 from core_app.repositories.item_repository import ItemRepository
 
 class ItemService:
@@ -8,14 +8,15 @@ class ItemService:
 
     def create_item(self, name: str, price: float) -> Item:
         if not name:
-            raise ValueError("Nome do item é obrigatório")
+            raise ValueError("Item name is required")
 
         if price <= 0:
-            raise ValueError("Preço deve ser maior que zero")
+            raise ValueError("Price must be greater than zero")
 
         item = Item(
+            id=0,
             name=name,
-            price=price
+            item_type="",
         )
 
         return self.repository.create(item)
@@ -30,6 +31,6 @@ class ItemService:
         item = self.repository.find_by_id(item_id)
 
         if not item:
-            raise ValueError("Item não encontrado")
+            raise ValueError("Item not found")
 
         self.repository.delete(item)
