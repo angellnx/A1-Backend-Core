@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Any
 from core_app.domain.models.transaction_type import TransactionType, TransactionTypeEnum
 
 class TransactionTypeService:
 
-    def __init__(self):
-        self._types: List[TransactionType] = []
-        self._id_counter = 1
+    def __init__(self, repository: Any):
+        # repository is expected to have create, find_all and find_by_id methods
+        self.repository = repository
 
     def create_type(
         self,
@@ -15,21 +15,17 @@ class TransactionTypeService:
     ) -> TransactionType:
 
         new_type = TransactionType(
-            id=self._id_counter,
+            id=None,
             name=name,
             color=color,
             type=tipo
         )
 
-        self._types.append(new_type)
-        self._id_counter += 1
-        return new_type
+        # ID assignment will happen inside the repository
+        return self.repository.create(new_type)
 
     def list_types(self) -> List[TransactionType]:
-        return self._types
+        return self.repository.find_all()
 
     def get_type_by_id(self, id: int) -> TransactionType | None:
-        return next(
-            (t for t in self._types if t.id == id),
-            None
-        )
+        return self.repository.find_by_id(id)

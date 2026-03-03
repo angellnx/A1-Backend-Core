@@ -10,9 +10,10 @@ class ItemService:
         if not name:
             raise ValueError("Item name is required")
 
-        if price <= 0:
-            raise ValueError("Price must be greater than zero")
-
+        # `price` is not a field on the Item model; it should be supplied by
+        # callers if needed but is ignored here.  The previous validation of
+        # `price <= 0` referred to a non‑existent attribute and has been
+        # removed to keep the model and service aligned.
         item = Item(
             id=0,
             name=name,

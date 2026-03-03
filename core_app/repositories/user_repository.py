@@ -2,13 +2,18 @@ from typing import List, Optional
 from core_app.domain.models.user import User
 
 users_db: List[User] = []
+_next_id: int = 1
 
 def add_user(user: User):
+    global _next_id
+    user.id = _next_id
+    _next_id += 1
     users_db.append(user)
     return user
 
 def get_users() -> List[User]:
     return users_db
+
 
 def get_user_by_id(user_id: int) -> Optional[User]:
     for user in users_db:
@@ -29,3 +34,9 @@ def delete_user(user_id: int) -> bool:
             del users_db[index]
             return True
     return False
+
+# alias names that services expect
+create = add_user
+find_by_id = get_user_by_id
+find_all = get_users
+delete = delete_user

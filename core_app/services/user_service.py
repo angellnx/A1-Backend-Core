@@ -14,8 +14,9 @@ class UserService:
             raise ValueError("User name is required")
         if not password:
             raise ValueError("Password is required")
-        if not phone:
-            raise ValueError("Phone number is required")
+        # phone is optional on the User model; earlier code raised an error if
+        # it was missing, which created an inconsistency.  Leave it alone so
+        # callers may omit it.
 
         user = User(
             id=0,
