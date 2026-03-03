@@ -8,7 +8,7 @@ class TransactionTypeEnum(str, Enum):
 
 
 class TransactionType(BaseModel):
-    id_transaction_type: int | None = None
+    id: int | None = None
     name: str = Field
     color: str = Field
     type: TransactionTypeEnum

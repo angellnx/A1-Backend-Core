@@ -10,6 +10,7 @@ def add_item_type(item_type: ItemType) -> ItemType:
 def get_item_types() -> List[ItemType]:
     return item_types_db
 
+
 def get_item_type_by_name(name: str) -> Optional[ItemType]:
     for it in item_types_db:
         if it.name == name:
@@ -29,3 +30,9 @@ def delete_item_type(name: str) -> bool:
             del item_types_db[index]
             return True
     return False
+
+# compatibility names for service layer
+create = add_item_type
+find_by_id = get_item_type_by_name
+find_all = get_item_types
+delete = delete_item_type

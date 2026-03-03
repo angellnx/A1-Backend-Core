@@ -2,13 +2,18 @@ from typing import List, Optional
 from core_app.domain.models.transaction import Transaction
 
 transactions_db: List[Transaction] = []
+_next_id: int = 1
 
 def add_transaction(tr: Transaction) -> Transaction:
+    global _next_id
+    tr.id = _next_id
+    _next_id += 1
     transactions_db.append(tr)
     return tr
 
 def get_transactions() -> List[Transaction]:
     return transactions_db
+
 
 def get_transaction_by_id(tr_id: int) -> Optional[Transaction]:
     for tr in transactions_db:
@@ -29,3 +34,9 @@ def delete_transaction(tr_id: int) -> bool:
             transactions_db.pop(index)
             return True
     return False
+
+# expose names expected by the service layer
+create = add_transaction
+find_by_id = get_transaction_by_id
+find_all = get_transactions
+delete = delete_transaction

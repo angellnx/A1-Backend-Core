@@ -10,7 +10,7 @@ class TransactionService:
         self,
         user_id: int,
         item_id: int,
-        transaction_type: str,
+        transaction_type_id: int,
         value: float,
         date: datetime | None = None,
         note: str | None = None
@@ -28,7 +28,7 @@ class TransactionService:
             notes=note,
             user_id=user_id,
             item_id=item_id,
-            transaction_type_id=0
+            transaction_type_id=transaction_type_id
         )
 
         return self.repository.create(transaction)
