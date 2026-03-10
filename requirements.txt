@@ -1,0 +1,11 @@
+# FastAPI Framework and Server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Data Validation and Configuration
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Database (for future migration from in-memory)
+sqlalchemy==2.0.23
