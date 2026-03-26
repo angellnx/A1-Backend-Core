@@ -5,6 +5,7 @@ from core_app.dependencies import get_transaction_service
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
+
 @router.post("/", response_model=TransactionResponse, status_code=201)
 def create_transaction(
     body: TransactionRequest,
@@ -15,6 +16,7 @@ def create_transaction(
             user_id=body.user_id,
             item_id=body.item_id,
             transaction_type_name=body.transaction_type_name,
+            currency_code=body.currency_code,
             value=body.value,
             date=body.date,
             notes=body.notes
@@ -26,10 +28,12 @@ def create_transaction(
             transaction_type_name=transaction.transaction_type.name,
             user_id=transaction.user_id,
             item_id=transaction.item_id,
+            currency_code=transaction.currency_code,
             notes=transaction.notes
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/", response_model=list[TransactionResponse])
 def list_transactions(service: TransactionService = Depends(get_transaction_service)):
@@ -41,13 +45,18 @@ def list_transactions(service: TransactionService = Depends(get_transaction_serv
             transaction_type_name=t.transaction_type.name,
             user_id=t.user_id,
             item_id=t.item_id,
+            currency_code=t.currency_code,
             notes=t.notes
         )
         for t in service.list_transactions()
     ]
 
+
 @router.get("/{transaction_id}", response_model=TransactionResponse)
-def get_transaction(transaction_id: int, service: TransactionService = Depends(get_transaction_service)):
+def get_transaction(
+    transaction_id: int,
+    service: TransactionService = Depends(get_transaction_service)
+):
     try:
         t = service.get_transaction(transaction_id)
         return TransactionResponse(
@@ -57,15 +66,19 @@ def get_transaction(transaction_id: int, service: TransactionService = Depends(g
             transaction_type_name=t.transaction_type.name,
             user_id=t.user_id,
             item_id=t.item_id,
+            currency_code=t.currency_code,
             notes=t.notes
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+
 @router.delete("/{transaction_id}", status_code=204)
-def delete_transaction(transaction_id: int, service: TransactionService = Depends(get_transaction_service)):
+def delete_transaction(
+    transaction_id: int,
+    service: TransactionService = Depends(get_transaction_service)
+):
     try:
         service.delete_transaction(transaction_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    

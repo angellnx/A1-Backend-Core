@@ -13,4 +13,4 @@ class UserResponse(BaseModel):
     name: str
     username: str
     phone: str | None = None
-    # password nunca aparece na response
+    # password never included in response for security reasons
