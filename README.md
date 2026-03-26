@@ -113,13 +113,15 @@ Users will have clear information about how their financial data is used within 
 * FastAPI 0.104.1
 * Pydantic 2.5.0
 * Uvicorn 0.24.0
+* SQLAlchemy 2.0.23
+* SQLite
 
 **Planned:**
-* SQLAlchemy 2.0.23
-* SQLite / PostgreSQL
 * JWT Authentication
 * Pytest
 * Docker
+* PostgreSQL (planned for production deployment)
+* N8N 
 
 ---
 
@@ -134,10 +136,15 @@ Router Layer (FastAPI)
 ↓
 Service Layer
 ↓
-Repository Layer
-↓
 Domain Models
+↓
+Repository Layer (SQLAlchemy)
+↓
+Database (SQLite)
 ```
+### Notes on Persistence
+* **Repository Layer** — repository Layer now uses SQLAlchemy for persistence, replacing the in-memory storage. Migration was seamless, preserving business rules and domain integrity..
+* **database/** — contains SQLAlchemy setup, including `Base`, `Session`, and table models. Provides the infrastructure for persistent storage without affecting domain logic.
 
 ### Domain Models
 Core business entities implemented as Python `@dataclass`. Business rules live inside the models — not scattered across services.
@@ -150,6 +157,7 @@ Current entities:
 * `TransactionType` — categorizes transactions via `is_positive` business rule
 * `Item` — asset or product associated with a transaction
 * `ItemType` — categorizes items by type
+* `Currency` — represents monetary units using ISO 4217 standard
 
 ### Repository Layer
 Handles data persistence through classes that abstract the storage mechanism. Currently implemented with **in-memory storage**. Designed as classes to allow seamless migration to SQLAlchemy in Sprint 2 without changing any other layer.
@@ -168,6 +176,11 @@ Exposes REST API endpoints using FastAPI. Uses **Pydantic schemas** to validate 
 A1-Backend-Core/
 │
 ├── core_app/
+│   ├── database/                  
+│   │   ├── base.py                
+│   │   ├── session.py             
+│   │   └── models/                
+│   │
 │   ├── domain/
 │   │   └── models/
 │   │       ├── user.py
@@ -217,6 +230,7 @@ A1-Backend-Core/
 
 * **domain/models** → business entities with encapsulated rules
 * **repositories** → in-memory persistence, ready for database migration
+* **database/** → SQLAlchemy setup, including session, base, and table models
 * **services** → business logic with dependency injection
 * **routers** → REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
@@ -265,6 +279,14 @@ A1-Backend-Core/
 | GET | `/transactions/{id}` | Get transaction by id |
 | DELETE | `/transactions/{id}` | Delete transaction |
 
+### Currencies
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/currencies/` | Create a currency |
+| GET | `/currencies/` | List all currencies |
+| GET | `/currencies/{code}` | Get currency by code |
+| DELETE | `/currencies/{code}` | Delete currency |
+
 ---
 
 # ▶️ Running the Project
@@ -311,7 +333,7 @@ http://127.0.0.1:8000/docs
 * REST API Routers with Pydantic schemas
 * Request/response contracts separating API from domain
 
-### 🔲 Sprint 2 — Persistence Layer
+### ✅ Sprint 2 — Persistence Layer
 * Integrate SQLite
 * Introduce SQLAlchemy ORM
 * Replace in-memory repositories

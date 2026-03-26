@@ -16,7 +16,7 @@ class UserService:
             raise ValueError("Password is required")
 
         user = User(id=0, email=email, name=name, username=username, phone=phone)
-        user.set_password(password)
+        user.set_password(password) # Hash the password before saving
         return self.repository.create(user)
 
     def get_user(self, user_id: int) -> User:
