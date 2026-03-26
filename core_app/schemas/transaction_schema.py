@@ -5,7 +5,8 @@ class TransactionRequest(BaseModel):
     user_id: int
     item_id: int
     transaction_type_name: str
-    value: float = Field(gt=0, description="Value must be greater than zero")
+    currency_code: str
+    value: float
     date: datetime | None = None
     notes: str | None = None
 
@@ -14,6 +15,7 @@ class TransactionResponse(BaseModel):
     date: datetime
     value: float
     transaction_type_name: str
+    currency_code: str
     user_id: int
     item_id: int
     notes: str | None = None
