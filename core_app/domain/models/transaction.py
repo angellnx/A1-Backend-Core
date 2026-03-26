@@ -16,8 +16,6 @@ class Transaction:
         self._normalize_value()
 
     def _normalize_value(self):
-        # Users always input positive values. The sign is determined
-        # by the transaction type's is_positive flag, not by the user.
         if not self.transaction_type.is_positive:
             self.value = -abs(self.value)
         else:
