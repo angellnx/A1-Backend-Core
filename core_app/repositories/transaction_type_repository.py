@@ -1,8 +1,13 @@
+"""Repository layer for persisting TransactionType domain models.
+
+Converts between Domain Models (TransactionType) and Database Models (TransactionTypeModel).
+"""
 from sqlalchemy.orm import Session
 from core_app.domain.models.transaction_type import TransactionType
 from core_app.database.models.transaction_type_model import TransactionTypeModel
 
 class TransactionTypeRepository:
+    """Coordinates TransactionType domain model persistence."""
     def __init__(self, session: Session):
         self._session = session
 

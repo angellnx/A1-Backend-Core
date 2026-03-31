@@ -1,7 +1,19 @@
+"""Business logic service for managing Users.
+
+Coordinates user operations by validating inputs and managing password
+hashing through the domain model.
+"""
 from core_app.domain.models.user import User
 from core_app.repositories.user_repository import UserRepository
 
 class UserService:
+    """Orchestrates user business logic and repository coordination.
+    
+    Responsibilities:
+    - Validate user inputs (email, name, username, password required)
+    - Hash passwords using domain methods before persistence
+    - Prevent authentication bypass through clear validation
+    """
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
@@ -16,7 +28,7 @@ class UserService:
             raise ValueError("Password is required")
 
         user = User(id=0, email=email, name=name, username=username, phone=phone)
-        user.set_password(password) # Hash the password before saving
+        user.set_password(password)
         return self.repository.create(user)
 
     def get_user(self, user_id: int) -> User:

@@ -1,133 +1,61 @@
 # 🚀 A1 Backend Core
 
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
 ![Architecture](https://img.shields.io/badge/architecture-layered-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
-![Status](https://img.shields.io/badge/status-in%20development-orange)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![API](https://img.shields.io/badge/API-REST-blue)
 
-A1 Backend Core is the backend foundation for a **personal finance and investment management system** designed to help individuals better understand and control their financial activity.
+REST API for personal finance management — built with FastAPI, layered architecture, and rich domain models.
 
-The platform is being developed with a particular focus on **low and middle-income users**, who often lack access to accessible financial tools that help them organize their finances and identify harmful financial habits.
+Designed with a social mission: making financial organization accessible to low and middle-income users who have historically been excluded from financial tools.
 
----
-
-# 💡 Why This Project Exists
-
-In Brazil and across the world, millions of people struggle not only with limited income — but with the absence of tools that help them understand their own financial reality.
-
-For low and middle-income individuals, financial stress is often invisible: small daily expenses that accumulate unnoticed, harmful spending habits that are never identified, and financial decisions made without clarity or support. The result is a cycle that is difficult to break — not because people lack effort or discipline, but because they lack access.
-
-Accessible financial tools have historically been designed for those who already have financial stability. Everyone else is left behind.
-
-This project was born from the belief that **technology can change that**.
-
-A1 Backend Core is the technical foundation for a platform that aims to give people — regardless of their income level — the visibility, organization, and awareness they need to take control of their financial lives.
-
-The goal is not just to build a good API. The goal is to build infrastructure that supports tools capable of making a real difference in people's lives.
+🔗 **Live API:** https://a1-backend-core.onrender.com/docs
 
 ---
 
-# 🎯 The Impact We Want to Create
+## 📸 Screenshot
 
-Financial organization should not be a privilege.
-
-This platform is being built to support tools that help people:
-
-* Understand where their money is going — clearly and without complexity
-* Identify spending habits that damage their financial health
-* Track income and expenses in a simple and accessible way
-* Make more informed financial decisions over time
-* Build healthier financial habits gradually and sustainably
-
-The long-term vision is a platform that reaches people who have never had access to structured financial guidance — and gives them the same visibility and control that has always been available only to those who could afford it.
-
-Every architectural decision in this project — from how transactions are structured to how data is protected — is made with this mission in mind.
+![screenshot1](screenshots/screenshot1.png)
 
 ---
 
-# 🧠 Core Concept
-
-The system is designed around **financial transactions**.
-
-Each transaction is associated with a user, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense.
-
-To simplify data entry, the API automatically normalizes transaction values. Users always provide **positive values**, and the system determines the correct sign internally.
-
-**Request:**
-```json
-{
-  "user_id": 1,
-  "item_id": 1,
-  "transaction_type_name": "Expense",
-  "value": 200
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "value": -200,
-  "transaction_type_name": "Expense",
-  "user_id": 1,
-  "item_id": 1,
-  "date": "2026-03-19T14:00:00",
-  "notes": null
-}
-```
-
-The sign is determined by the transaction type — not by the user. This ensures consistent financial data while keeping the interface simple.
-
----
-
-# 🔒 Privacy & Data Protection
-
-Because this platform handles **personal financial data**, privacy and data protection are core design considerations — not afterthoughts.
-
-The project follows principles inspired by the Brazilian **Lei Geral de Proteção de Dados Pessoais (LGPD)** and modern security best practices.
-
-### Data Minimization
-The system collects and stores only the information strictly necessary for the platform to function.
-
-### Security by Design
-Security is incorporated into the architecture from the beginning:
-* Secure password hashing
-* Protected API routes
-* Authentication mechanisms
-* Controlled data access
-
-### User Data Control
-Future versions will include mechanisms allowing users to manage and delete their personal data.
-
-### Transparency
-Users will have clear information about how their financial data is used within the platform.
-
----
-
-# 🛠 Tech Stack
+## 🛠 Tech Stack
 
 **Current:**
 * Python 3.12
-* FastAPI 0.104.1
-* Pydantic 2.5.0
-* Uvicorn 0.24.0
-* SQLAlchemy 2.0.23
+* FastAPI 0.115
+* Pydantic 2.10
+* Uvicorn 0.24
+* SQLAlchemy 2.0
 * SQLite
 
 **Planned:**
 * JWT Authentication
 * Pytest
 * Docker
-* PostgreSQL (planned for production deployment)
-* N8N 
+* PostgreSQL
+* N8N
 
 ---
 
-# 🏗 Architecture
+## ▶️ Running the Project
 
-The backend follows a **layered architecture** designed to separate responsibilities and keep business rules isolated from infrastructure concerns.
+```bash
+git clone https://github.com/angellnx/A1-Backend-Core
+cd A1-Backend-Core
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn core_app.main:app --reload
+```
+
+Access: http://127.0.0.1:8000/docs
+
+---
+
+## 🏗 Architecture
 
 ```
 Client
@@ -142,9 +70,6 @@ Repository Layer (SQLAlchemy)
 ↓
 Database (SQLite)
 ```
-### Notes on Persistence
-* **Repository Layer** — repository Layer now uses SQLAlchemy for persistence, replacing the in-memory storage. Migration was seamless, preserving business rules and domain integrity..
-* **database/** — contains SQLAlchemy setup, including `Base`, `Session`, and table models. Provides the infrastructure for persistent storage without affecting domain logic.
 
 ### Domain Models
 Core business entities implemented as Python `@dataclass`. Business rules live inside the models — not scattered across services.
@@ -155,12 +80,14 @@ Current entities:
 * `User` — system user with encapsulated password hashing
 * `Transaction` — financial movement with automatic value normalization
 * `TransactionType` — categorizes transactions via `is_positive` business rule
-* `Item` — asset or product associated with a transaction
-* `ItemType` — categorizes items by type
-* `Currency` — represents monetary units using ISO 4217 standard
+* `Account` — user financial account with dynamically calculated balance
+* `Budget` — spending limit per category, currency, and month/year
+* `Item` — line item associated with a transaction
+* `Category` — groups items and budgets; uses name as primary key
+* `Currency` — monetary unit following ISO 4217 standard
 
 ### Repository Layer
-Handles data persistence through classes that abstract the storage mechanism. Currently implemented with **in-memory storage**. Designed as classes to allow seamless migration to SQLAlchemy in Sprint 2 without changing any other layer.
+Handles data persistence through SQLAlchemy ORM-backed classes. Each repository converts between Domain Models (pure business objects) and ORM Models (SQLAlchemy mapped classes), keeping the domain layer completely free of infrastructure concerns. Queries are scoped per user where relevant (accounts, budgets).
 
 ### Service Layer
 Contains the core business logic. Receives repositories via **dependency injection** — never instantiates them directly. Responsible for validating inputs, resolving entity relationships, and coordinating persistence.
@@ -170,74 +97,80 @@ Exposes REST API endpoints using FastAPI. Uses **Pydantic schemas** to validate 
 
 ---
 
-# 📂 Project Structure
+## 🧠 Core Concept
+
+The system is designed around **financial transactions**.
+
+Each transaction is associated with a user, an account, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense.
+
+Accounts aggregate transactions and expose a dynamic balance calculated from all linked movements. Budgets define spending limits per category, currency, and month/year — enforcing a composite uniqueness constraint that prevents duplicate budget definitions.
+
+To simplify data entry, the API automatically normalizes transaction values. Users always provide **positive values**, and the system determines the correct sign internally.
+
+**Request:**
+```json
+{
+  "user_id": 1,
+  "account_id": 1,
+  "item_id": 1,
+  "transaction_type_name": "Expense",
+  "currency_code": "BRL",
+  "value": 200
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "value": -200,
+  "transaction_type_name": "Expense",
+  "user_id": 1,
+  "account_id": 1,
+  "item_id": 1,
+  "currency_code": "BRL",
+  "date": "2026-03-19T14:00:00",
+  "notes": null
+}
+```
+
+---
+
+## 📂 Project Structure
 
 ```
 A1-Backend-Core/
 │
 ├── core_app/
-│   ├── database/                  
-│   │   ├── base.py                
-│   │   ├── session.py             
-│   │   └── models/                
-│   │
+│   ├── database/
+│   │   ├── base.py
+│   │   ├── session.py
+│   │   └── models/
 │   ├── domain/
 │   │   └── models/
-│   │       ├── user.py
-│   │       ├── transaction.py
-│   │       ├── transaction_type.py
-│   │       ├── item.py
-│   │       └── item_type.py
-│   │
 │   ├── repositories/
-│   │   ├── user_repository.py
-│   │   ├── transaction_repository.py
-│   │   ├── transaction_type_repository.py
-│   │   ├── item_repository.py
-│   │   └── item_type_repository.py
-│   │
 │   ├── services/
-│   │   ├── user_service.py
-│   │   ├── transaction_service.py
-│   │   ├── transaction_type_service.py
-│   │   ├── item_service.py
-│   │   └── item_type_service.py
-│   │
 │   ├── routers/
-│   │   ├── user_router.py
-│   │   ├── transaction_router.py
-│   │   ├── transaction_type_router.py
-│   │   ├── item_router.py
-│   │   └── item_type_router.py
-│   │
 │   ├── schemas/
-│   │   ├── user_schema.py
-│   │   ├── transaction_schema.py
-│   │   ├── transaction_type_schema.py
-│   │   ├── item_schema.py
-│   │   └── item_type_schema.py
-│   │
 │   ├── core/
 │   │   └── config.py
-│   │
 │   ├── dependencies.py
 │   └── main.py
 │
 ├── requirements.txt
-├── requirements-dev.txt
 └── README.md
 ```
 
 * **domain/models** → business entities with encapsulated rules
-* **repositories** → in-memory persistence, ready for database migration
-* **database/** → SQLAlchemy setup, including session, base, and table models
+* **database/** → SQLAlchemy setup, including session, base, and ORM models
+* **repositories** → database-backed persistence with domain/ORM conversion
 * **services** → business logic with dependency injection
 * **routers** → REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
 
 ---
 
-# 📡 API Endpoints
+## 📡 API Endpoints
 
 ### Users
 | Method | Endpoint | Description |
@@ -247,6 +180,14 @@ A1-Backend-Core/
 | GET | `/users/{id}` | Get user by id |
 | DELETE | `/users/{id}` | Delete user |
 
+### Accounts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/accounts/` | Create an account |
+| GET | `/accounts/user/{user_id}` | List accounts by user |
+| GET | `/accounts/{id}` | Get account by id |
+| DELETE | `/accounts/{id}` | Delete account |
+
 ### Transaction Types
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -255,13 +196,13 @@ A1-Backend-Core/
 | GET | `/transaction-types/{name}` | Get transaction type by name |
 | DELETE | `/transaction-types/{name}` | Delete transaction type |
 
-### Item Types
+### Categories
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/item-types/` | Create an item type |
-| GET | `/item-types/` | List all item types |
-| GET | `/item-types/{name}` | Get item type by name |
-| DELETE | `/item-types/{name}` | Delete item type |
+| POST | `/categories/` | Create a category |
+| GET | `/categories/` | List all categories |
+| GET | `/categories/{name}` | Get category by name |
+| DELETE | `/categories/{name}` | Delete category |
 
 ### Items
 | Method | Endpoint | Description |
@@ -271,14 +212,6 @@ A1-Backend-Core/
 | GET | `/items/{id}` | Get item by id |
 | DELETE | `/items/{id}` | Delete item |
 
-### Transactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/transactions/` | Create a transaction |
-| GET | `/transactions/` | List all transactions |
-| GET | `/transactions/{id}` | Get transaction by id |
-| DELETE | `/transactions/{id}` | Delete transaction |
-
 ### Currencies
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -287,56 +220,42 @@ A1-Backend-Core/
 | GET | `/currencies/{code}` | Get currency by code |
 | DELETE | `/currencies/{code}` | Delete currency |
 
----
+### Budgets
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/budgets/` | Create a budget |
+| GET | `/budgets/user/{user_id}` | List budgets by user |
+| GET | `/budgets/{id}` | Get budget by id |
+| DELETE | `/budgets/{id}` | Delete budget |
 
-# ▶️ Running the Project
-
-Clone the repository:
-```bash
-git clone https://github.com/angellnx/A1-Backend-Core
-```
-
-Navigate to the project directory:
-```bash
-cd A1-Backend-Core
-```
-
-Create and activate a virtual environment:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Run the application:
-```bash
-uvicorn core_app.main:app --reload
-```
-
-Access the interactive API documentation:
-```
-http://127.0.0.1:8000/docs
-```
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/transactions/` | Create a transaction |
+| GET | `/transactions/` | List all transactions |
+| GET | `/transactions/{id}` | Get transaction by id |
+| DELETE | `/transactions/{id}` | Delete transaction |
 
 ---
 
-# 🗺 Roadmap
+## 🗺 Roadmap
 
 ### ✅ Sprint 1 — Core Domain Architecture
 * Rich Domain Models with encapsulated business rules
 * In-memory Repository Layer implemented as classes
 * Service Layer with dependency injection
 * REST API Routers with Pydantic schemas
-* Request/response contracts separating API from domain
+* Request/response contracts separating API layer from domain
 
 ### ✅ Sprint 2 — Persistence Layer
-* Integrate SQLite
-* Introduce SQLAlchemy ORM
-* Replace in-memory repositories
+* Integrated SQLite with SQLAlchemy ORM and typed mappings
+* Replaced in-memory repositories with database-backed persistence
+* Replaced ItemType with Category entity across all layers
+* Added Account entity with user-scoped queries
+* Added Budget entity with composite uniqueness constraint
+* Added Currency entity with ISO 4217 normalization
+* Added structured docstrings across all layers
+* Set up session management and FastAPI dependency injection
 
 ### 🔲 Sprint 3 — API Improvements
 * Pagination and filtering
@@ -367,11 +286,67 @@ http://127.0.0.1:8000/docs
 
 ---
 
-# 🌍 Long-Term Vision
+## 💡 Why This Project Exists
+
+In Brazil and across the world, millions of people struggle not only with limited income — but with the absence of tools that help them understand their own financial reality.
+
+For low and middle-income individuals, financial stress is often invisible: small daily expenses that accumulate unnoticed, harmful spending habits that are never identified, and financial decisions made without clarity or support. The result is a cycle that is difficult to break — not because people lack effort or discipline, but because they lack access.
+
+Accessible financial tools have historically been designed for those who already have financial stability. Everyone else is left behind.
+
+This project was born from the belief that **technology can change that**.
+
+A1 Backend Core is the technical foundation for a platform that aims to give people — regardless of their income level — the visibility, organization, and awareness they need to take control of their financial lives.
+
+The goal is not just to build a good API. The goal is to build infrastructure that supports tools capable of making a real difference in people's lives.
+
+---
+
+## 🎯 The Impact We Want to Create
+
+Financial organization should not be a privilege.
+
+This platform is being built to support tools that help people:
+
+* Understand where their money is going — clearly and without complexity
+* Identify spending habits that damage their financial health
+* Track income and expenses in a simple and accessible way
+* Make more informed financial decisions over time
+* Build healthier financial habits gradually and sustainably
+
+The long-term vision is a platform that reaches people who have never had access to structured financial guidance — and gives them the same visibility and control that has always been available only to those who could afford it.
+
+Every architectural decision in this project — from how transactions are structured to how data is protected — is made with this mission in mind.
+
+---
+
+## 🔒 Privacy & Data Protection
+
+Because this platform handles **personal financial data**, privacy and data protection are core design considerations — not afterthoughts.
+
+The project follows principles inspired by the Brazilian **Lei Geral de Proteção de Dados Pessoais (LGPD)** and modern security best practices.
+
+### Data Minimization
+The system collects and stores only the information strictly necessary for the platform to function.
+
+### Security by Design
+Security is incorporated into the architecture from the beginning:
+* Secure password hashing
+* Protected API routes
+* Authentication mechanisms
+* Controlled data access
+
+### User Data Control
+Future versions will include mechanisms allowing users to manage and delete their personal data.
+
+### Transparency
+Users will have clear information about how their financial data is used within the platform.
+
+---
+
+## 🌍 Long-Term Vision
 
 The long-term goal is to evolve this backend into a **complete personal finance platform focused on social impact** — making financial management tools genuinely accessible to people who have historically been excluded from them.
-
-This means not just building features, but building them in a way that is simple enough for anyone to use, secure enough to be trusted with sensitive financial data, and robust enough to scale to the people who need it most.
 
 Future components include:
 
@@ -381,11 +356,11 @@ Future components include:
 * **Data-driven financial insights** to help users understand their spending patterns and financial behavior
 * Intelligent features powered by **data analysis and AI** to identify risky financial habits and support better decision-making
 
-Future infrastructure includes PostgreSQL, Redis caching, Docker containerization, CI/CD pipeline, and background processing — all in service of a platform that can reach and support the people who need it most.
+Future infrastructure includes PostgreSQL, Redis caching, Docker containerization, CI/CD pipeline, and background processing.
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
 Developer focused on **Python, Backend Engineering and Data Systems**, currently building the technical foundation for financial management platforms and data-driven financial tools.
 
@@ -394,7 +369,7 @@ Developer focused on **Python, Backend Engineering and Data Systems**, currently
 
 ---
 
-# 📜 License
+## 📜 License
 
 This project is licensed under the **Apache License 2.0**.
 
@@ -403,7 +378,5 @@ You are free to use, modify, and distribute this project, provided that:
 * The original copyright notice and attribution to the author are preserved
 * Any modified versions clearly state the changes made
 * The license text is included in any redistribution
-
-This means that if you use this code in your own project, you must give appropriate credit to the original author in your code or documentation.
 
 See the [LICENSE](./LICENSE) file for the full license text.
