@@ -51,7 +51,9 @@ Every architectural decision in this project — from how transactions are struc
 
 The system is designed around **financial transactions**.
 
-Each transaction is associated with a user, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense.
+Each transaction is associated with a user, an account, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense.
+
+Accounts aggregate transactions and expose a dynamic balance calculated from all linked movements. Budgets define spending limits per category, currency, and month/year — enforcing a composite uniqueness constraint that prevents duplicate budget definitions.
 
 To simplify data entry, the API automatically normalizes transaction values. Users always provide **positive values**, and the system determines the correct sign internally.
 
@@ -59,8 +61,10 @@ To simplify data entry, the API automatically normalizes transaction values. Use
 ```json
 {
   "user_id": 1,
+  "account_id": 1,
   "item_id": 1,
   "transaction_type_name": "Expense",
+  "currency_code": "BRL",
   "value": 200
 }
 ```
@@ -72,7 +76,9 @@ To simplify data entry, the API automatically normalizes transaction values. Use
   "value": -200,
   "transaction_type_name": "Expense",
   "user_id": 1,
+  "account_id": 1,
   "item_id": 1,
+  "currency_code": "BRL",
   "date": "2026-03-19T14:00:00",
   "notes": null
 }
@@ -121,7 +127,7 @@ Users will have clear information about how their financial data is used within 
 * Pytest
 * Docker
 * PostgreSQL (planned for production deployment)
-* N8N 
+* N8N
 
 ---
 
@@ -142,9 +148,6 @@ Repository Layer (SQLAlchemy)
 ↓
 Database (SQLite)
 ```
-### Notes on Persistence
-* **Repository Layer** — repository Layer now uses SQLAlchemy for persistence, replacing the in-memory storage. Migration was seamless, preserving business rules and domain integrity..
-* **database/** — contains SQLAlchemy setup, including `Base`, `Session`, and table models. Provides the infrastructure for persistent storage without affecting domain logic.
 
 ### Domain Models
 Core business entities implemented as Python `@dataclass`. Business rules live inside the models — not scattered across services.
@@ -155,12 +158,14 @@ Current entities:
 * `User` — system user with encapsulated password hashing
 * `Transaction` — financial movement with automatic value normalization
 * `TransactionType` — categorizes transactions via `is_positive` business rule
-* `Item` — asset or product associated with a transaction
-* `ItemType` — categorizes items by type
-* `Currency` — represents monetary units using ISO 4217 standard
+* `Account` — user financial account with dynamically calculated balance
+* `Budget` — spending limit per category, currency, and month/year
+* `Item` — line item associated with a transaction
+* `Category` — groups items and budgets; uses name as primary key
+* `Currency` — monetary unit following ISO 4217 standard
 
 ### Repository Layer
-Handles data persistence through classes that abstract the storage mechanism. Currently implemented with **in-memory storage**. Designed as classes to allow seamless migration to SQLAlchemy in Sprint 2 without changing any other layer.
+Handles data persistence through SQLAlchemy ORM-backed classes. Each repository converts between Domain Models (pure business objects) and ORM Models (SQLAlchemy mapped classes), keeping the domain layer completely free of infrastructure concerns. Queries are scoped per user where relevant (accounts, budgets).
 
 ### Service Layer
 Contains the core business logic. Receives repositories via **dependency injection** — never instantiates them directly. Responsible for validating inputs, resolving entity relationships, and coordinating persistence.
@@ -176,46 +181,69 @@ Exposes REST API endpoints using FastAPI. Uses **Pydantic schemas** to validate 
 A1-Backend-Core/
 │
 ├── core_app/
-│   ├── database/                  
-│   │   ├── base.py                
-│   │   ├── session.py             
-│   │   └── models/                
+│   ├── database/
+│   │   ├── base.py
+│   │   ├── session.py
+│   │   └── models/
+│   │       ├── user_model.py
+│   │       ├── transaction_model.py
+│   │       ├── transaction_type_model.py
+│   │       ├── account_model.py
+│   │       ├── budget_model.py
+│   │       ├── item_model.py
+│   │       ├── category_model.py
+│   │       └── currency_model.py
 │   │
 │   ├── domain/
 │   │   └── models/
 │   │       ├── user.py
 │   │       ├── transaction.py
 │   │       ├── transaction_type.py
+│   │       ├── account.py
+│   │       ├── budget.py
 │   │       ├── item.py
-│   │       └── item_type.py
+│   │       ├── category.py
+│   │       └── currency.py
 │   │
 │   ├── repositories/
 │   │   ├── user_repository.py
 │   │   ├── transaction_repository.py
 │   │   ├── transaction_type_repository.py
+│   │   ├── account_repository.py
+│   │   ├── budget_repository.py
 │   │   ├── item_repository.py
-│   │   └── item_type_repository.py
+│   │   ├── category_repository.py
+│   │   └── currency_repository.py
 │   │
 │   ├── services/
 │   │   ├── user_service.py
 │   │   ├── transaction_service.py
 │   │   ├── transaction_type_service.py
+│   │   ├── account_service.py
+│   │   ├── budget_service.py
 │   │   ├── item_service.py
-│   │   └── item_type_service.py
+│   │   ├── category_service.py
+│   │   └── currency_service.py
 │   │
 │   ├── routers/
 │   │   ├── user_router.py
 │   │   ├── transaction_router.py
 │   │   ├── transaction_type_router.py
+│   │   ├── account_router.py
+│   │   ├── budget_router.py
 │   │   ├── item_router.py
-│   │   └── item_type_router.py
+│   │   ├── category_router.py
+│   │   └── currency_router.py
 │   │
 │   ├── schemas/
 │   │   ├── user_schema.py
 │   │   ├── transaction_schema.py
 │   │   ├── transaction_type_schema.py
+│   │   ├── account_schema.py
+│   │   ├── budget_schema.py
 │   │   ├── item_schema.py
-│   │   └── item_type_schema.py
+│   │   ├── category_schema.py
+│   │   └── currency_schema.py
 │   │
 │   ├── core/
 │   │   └── config.py
@@ -224,13 +252,12 @@ A1-Backend-Core/
 │   └── main.py
 │
 ├── requirements.txt
-├── requirements-dev.txt
 └── README.md
 ```
 
 * **domain/models** → business entities with encapsulated rules
-* **repositories** → in-memory persistence, ready for database migration
-* **database/** → SQLAlchemy setup, including session, base, and table models
+* **database/** → SQLAlchemy setup, including session, base, and ORM models
+* **repositories** → database-backed persistence with domain/ORM conversion
 * **services** → business logic with dependency injection
 * **routers** → REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
@@ -247,6 +274,14 @@ A1-Backend-Core/
 | GET | `/users/{id}` | Get user by id |
 | DELETE | `/users/{id}` | Delete user |
 
+### Accounts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/accounts/` | Create an account |
+| GET | `/accounts/user/{user_id}` | List accounts by user |
+| GET | `/accounts/{id}` | Get account by id |
+| DELETE | `/accounts/{id}` | Delete account |
+
 ### Transaction Types
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -255,13 +290,13 @@ A1-Backend-Core/
 | GET | `/transaction-types/{name}` | Get transaction type by name |
 | DELETE | `/transaction-types/{name}` | Delete transaction type |
 
-### Item Types
+### Categories
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/item-types/` | Create an item type |
-| GET | `/item-types/` | List all item types |
-| GET | `/item-types/{name}` | Get item type by name |
-| DELETE | `/item-types/{name}` | Delete item type |
+| POST | `/categories/` | Create a category |
+| GET | `/categories/` | List all categories |
+| GET | `/categories/{name}` | Get category by name |
+| DELETE | `/categories/{name}` | Delete category |
 
 ### Items
 | Method | Endpoint | Description |
@@ -271,14 +306,6 @@ A1-Backend-Core/
 | GET | `/items/{id}` | Get item by id |
 | DELETE | `/items/{id}` | Delete item |
 
-### Transactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/transactions/` | Create a transaction |
-| GET | `/transactions/` | List all transactions |
-| GET | `/transactions/{id}` | Get transaction by id |
-| DELETE | `/transactions/{id}` | Delete transaction |
-
 ### Currencies
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -286,6 +313,22 @@ A1-Backend-Core/
 | GET | `/currencies/` | List all currencies |
 | GET | `/currencies/{code}` | Get currency by code |
 | DELETE | `/currencies/{code}` | Delete currency |
+
+### Budgets
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/budgets/` | Create a budget |
+| GET | `/budgets/user/{user_id}` | List budgets by user |
+| GET | `/budgets/{id}` | Get budget by id |
+| DELETE | `/budgets/{id}` | Delete budget |
+
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/transactions/` | Create a transaction |
+| GET | `/transactions/` | List all transactions |
+| GET | `/transactions/{id}` | Get transaction by id |
+| DELETE | `/transactions/{id}` | Delete transaction |
 
 ---
 
@@ -331,12 +374,17 @@ http://127.0.0.1:8000/docs
 * In-memory Repository Layer implemented as classes
 * Service Layer with dependency injection
 * REST API Routers with Pydantic schemas
-* Request/response contracts separating API from domain
+* Request/response contracts separating API layer from domain
 
 ### ✅ Sprint 2 — Persistence Layer
-* Integrate SQLite
-* Introduce SQLAlchemy ORM
-* Replace in-memory repositories
+* Integrated SQLite with SQLAlchemy ORM and typed mappings
+* Replaced in-memory repositories with database-backed persistence
+* Replaced ItemType with Category entity across all layers
+* Added Account entity with user-scoped queries
+* Added Budget entity with composite uniqueness constraint
+* Added Currency entity with ISO 4217 normalization
+* Added structured docstrings across all layers
+* Set up session management and FastAPI dependency injection
 
 ### 🔲 Sprint 3 — API Improvements
 * Pagination and filtering
