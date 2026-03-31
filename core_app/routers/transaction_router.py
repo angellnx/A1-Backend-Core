@@ -1,3 +1,8 @@
+"""HTTP API endpoints for managing transactions.
+
+Exposes CRUD operations for financial transactions as REST endpoints.
+Transactions record income and expense movements affecting account balances.
+"""
 from fastapi import APIRouter, Depends, HTTPException
 from core_app.services.transaction_service import TransactionService
 from core_app.schemas.transaction_schema import TransactionRequest, TransactionResponse
@@ -11,10 +16,23 @@ def create_transaction(
     body: TransactionRequest,
     service: TransactionService = Depends(get_transaction_service)
 ):
+    """Create a new transaction.
+    
+    Args:
+        body: Request with user_id, item_id, transaction_type_name, currency_code, value, date, notes.
+        service: TransactionService instance via dependency injection.
+    
+    Returns:
+        TransactionResponse: Created transaction (HTTP 201).
+    
+    Raises:
+        HTTPException: 400 if validation fails or dependencies not found.
+    """
     try:
         transaction = service.create_transaction(
             user_id=body.user_id,
             item_id=body.item_id,
+            account_id=body.account_id,
             transaction_type_name=body.transaction_type_name,
             currency_code=body.currency_code,
             value=body.value,
@@ -37,6 +55,14 @@ def create_transaction(
 
 @router.get("/", response_model=list[TransactionResponse])
 def list_transactions(service: TransactionService = Depends(get_transaction_service)):
+    """List all transactions.
+    
+    Args:
+        service: TransactionService instance via dependency injection.
+    
+    Returns:
+        list[TransactionResponse]: All transactions.
+    """
     return [
         TransactionResponse(
             id=t.id,
@@ -57,6 +83,18 @@ def get_transaction(
     transaction_id: int,
     service: TransactionService = Depends(get_transaction_service)
 ):
+    """Retrieve a transaction by ID.
+    
+    Args:
+        transaction_id: Transaction ID to retrieve.
+        service: TransactionService instance via dependency injection.
+    
+    Returns:
+        TransactionResponse: Found transaction.
+    
+    Raises:
+        HTTPException: 404 if transaction not found.
+    """
     try:
         t = service.get_transaction(transaction_id)
         return TransactionResponse(
@@ -78,6 +116,18 @@ def delete_transaction(
     transaction_id: int,
     service: TransactionService = Depends(get_transaction_service)
 ):
+    """Delete a transaction by ID.
+    
+    Args:
+        transaction_id: Transaction ID to delete.
+        service: TransactionService instance via dependency injection.
+    
+    Returns:
+        None (HTTP 204 No Content).
+    
+    Raises:
+        HTTPException: 404 if transaction not found.
+    """
     try:
         service.delete_transaction(transaction_id)
     except ValueError as e:
