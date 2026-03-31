@@ -1,10 +1,18 @@
+"""Repository layer for persisting Transaction domain models.
+
+Converts between Domain Models (Transaction) and Database Models (TransactionModel).
+"""
 from sqlalchemy.orm import Session
 from core_app.domain.models.transaction import Transaction
 from core_app.domain.models.transaction_type import TransactionType
 from core_app.database.models.transaction_model import TransactionModel
 
-
 class TransactionRepository:
+    """Coordinates Transaction domain model persistence.
+    
+    Manages complex relationships: transactions connect items, accounts,
+    transaction types, users, currencies, and amounts.
+    """
     def __init__(self, session: Session):
         self._session = session
 
@@ -16,7 +24,8 @@ class TransactionRepository:
             user_id=transaction.user_id,
             transaction_type_name=transaction.transaction_type.name,
             item_id=transaction.item_id,
-            currency_code=transaction.currency_code
+            currency_code=transaction.currency_code,
+            account_id=transaction.account_id
         )
         self._session.add(db)
         self._session.commit()
@@ -40,6 +49,7 @@ class TransactionRepository:
             user_id=db.user_id,
             item_id=db.item_id,
             currency_code=db.currency.code,
+            account_id=db.account.id,
             notes=db.notes
         )
 
@@ -56,6 +66,7 @@ class TransactionRepository:
                 user_id=db.user_id,
                 item_id=db.item_id,
                 currency_code=db.currency.code,
+                account_id=db.account.id,
                 notes=db.notes
             )
             for db in self._session.query(TransactionModel).all()

@@ -1,3 +1,8 @@
+"""SQLAlchemy ORM model for persisting Transaction entities.
+
+Maps Transaction domain models to the 'transaction' database table with SQLite.
+Handles all monetary movements between accounts including income and expenses.
+"""
 from sqlalchemy import Integer, String, Numeric, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core_app.database.base import Base
@@ -5,9 +10,19 @@ from core_app.database.models.user_model import UserModel
 from core_app.database.models.transaction_type_model import TransactionTypeModel
 from core_app.database.models.item_model import ItemModel
 from core_app.database.models.currency_model import CurrencyModel
+from core_app.database.models.account_model import AccountModel
 from datetime import datetime
 
 class TransactionModel(Base):
+    """ORM model for Transaction persistence.
+    
+    Transactions record financial movements (income or expense) that affect
+    account balances. Values are normalized to include sign (negative for expenses,
+    positive for income) based on the transaction type.
+    
+    All relationships are eagerly loaded (lazy="joined") to ensure complete
+    transaction data is always available without additional queries.
+    """
     __tablename__ = "transaction"
 
     id: Mapped[int] = mapped_column(Integer, primary_key = True, autoincrement = True)
@@ -18,8 +33,10 @@ class TransactionModel(Base):
     transaction_type_name: Mapped[str] = mapped_column(String(20), ForeignKey("transaction_type.name"), nullable = False)
     item_id: Mapped[int] = mapped_column(Integer, ForeignKey("item.id"), nullable = False)
     currency_code: Mapped[str] = mapped_column(String(3), ForeignKey("currency.code"), nullable=False)
-
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("account.id"), nullable=False)
+    
     transaction_type: Mapped[TransactionTypeModel] = relationship("TransactionTypeModel", lazy="joined")
     item: Mapped[ItemModel] = relationship("ItemModel", lazy="joined")
     user: Mapped[UserModel] = relationship("UserModel", lazy="joined")  
     currency: Mapped[CurrencyModel] = relationship("CurrencyModel", lazy="joined")
+    account: Mapped["AccountModel"] = relationship("AccountModel", lazy="joined")

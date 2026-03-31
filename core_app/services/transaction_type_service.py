@@ -1,7 +1,19 @@
+"""Business logic service for managing Transaction Types.
+
+Coordinates transaction type operations by validating inputs and
+preventing duplicate type definitions.
+"""
 from core_app.domain.models.transaction_type import TransactionType
 from core_app.repositories.transaction_type_repository import TransactionTypeRepository
 
 class TransactionTypeService:
+    """Orchestrates transaction type business logic and repository coordination.
+    
+    Responsibilities:
+    - Validate transaction type inputs (name required)
+    - Prevent duplicate transaction types
+    - Reference data for classifying transactions as income/expense
+    """
     def __init__(self, repository: TransactionTypeRepository):
         self.repository = repository
 

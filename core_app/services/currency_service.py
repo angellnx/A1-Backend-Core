@@ -1,7 +1,19 @@
+"""Business logic service for managing Currencies.
+
+Coordinates currency operations by validating inputs, normalizing codes
+to uppercase, and preventing duplicates.
+"""
 from core_app.domain.models import Currency
 from core_app.repositories.currency_repository import CurrencyRepository
 
 class CurrencyService:
+    """Orchestrates currency business logic and repository coordination.
+    
+    Responsibilities:
+    - Validate currency inputs (code required)
+    - Normalize currency codes to uppercase (ISO 4217)
+    - Prevent duplicate currencies
+    """
     def __init__(self, repository: CurrencyRepository):
         self.repository = repository
 
