@@ -1,3 +1,4 @@
+"""Application configuration via environment variables and defaults."""
 from pydantic_settings import BaseSettings
 
 

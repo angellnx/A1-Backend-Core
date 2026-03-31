@@ -1,16 +1,24 @@
+"""Repository layer for persisting Item domain models.
+
+Converts between Domain Models (Item) and Database Models (ItemModel).
+"""
 from sqlalchemy.orm import Session
 from core_app.domain.models.item import Item
-from core_app.domain.models.item_type import ItemType
+from core_app.domain.models.category import Category
 from core_app.database.models.item_model import ItemModel
 
 class ItemRepository:
+    """Coordinates Item domain model persistence.
+    
+    Items include category references which are loaded eagerly from relationships.
+    """
     def __init__(self, session: Session):
         self._session = session
 
     def create(self, item: Item) -> Item:
         db = ItemModel(
             name=item.name,
-            item_type_name=item.item_type.name
+            category_name=item.category.name
         )
         self._session.add(db)
         self._session.commit()
@@ -25,9 +33,9 @@ class ItemRepository:
         return Item(
             id=db.id,
             name=db.name,
-            item_type=ItemType(
-                name=db.item_type.name,
-                color=db.item_type.color
+            category=Category(
+                name=db.category.name,
+                color=db.category.color
             )
         )
 
@@ -36,9 +44,9 @@ class ItemRepository:
             Item(
                 id=db.id,
                 name=db.name,
-                item_type=ItemType(
-                    name=db.item_type.name,
-                    color=db.item_type.color
+                category=Category(
+                    name=db.category.name,
+                    color=db.category.color
                 )
             )
             for db in self._session.query(ItemModel).all()
