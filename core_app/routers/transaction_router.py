@@ -6,7 +6,8 @@ Transactions record income and expense movements affecting account balances.
 from fastapi import APIRouter, Depends, HTTPException
 from core_app.services.transaction_service import TransactionService
 from core_app.schemas.transaction_schema import TransactionRequest, TransactionResponse
-from core_app.dependencies import get_transaction_service
+from core_app.dependencies import get_transaction_service, get_current_user
+from core_app.domain.models.user import User
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -14,23 +15,12 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 @router.post("/", response_model=TransactionResponse, status_code=201)
 def create_transaction(
     body: TransactionRequest,
-    service: TransactionService = Depends(get_transaction_service)
+    service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Create a new transaction.
-    
-    Args:
-        body: Request with user_id, item_id, transaction_type_name, currency_code, value, date, notes.
-        service: TransactionService instance via dependency injection.
-    
-    Returns:
-        TransactionResponse: Created transaction (HTTP 201).
-    
-    Raises:
-        HTTPException: 400 if validation fails or dependencies not found.
-    """
     try:
         transaction = service.create_transaction(
-            user_id=body.user_id,
+            user_id=current_user.id,
             item_id=body.item_id,
             account_id=body.account_id,
             transaction_type_name=body.transaction_type_name,
@@ -54,47 +44,34 @@ def create_transaction(
 
 
 @router.get("/", response_model=list[TransactionResponse])
-def list_transactions(service: TransactionService = Depends(get_transaction_service)):
-    """List all transactions.
-    
-    Args:
-        service: TransactionService instance via dependency injection.
-    
-    Returns:
-        list[TransactionResponse]: All transactions.
-    """
-    return [
-        TransactionResponse(
-            id=t.id,
-            date=t.date,
-            value=t.value,
-            transaction_type_name=t.transaction_type.name,
-            user_id=t.user_id,
-            item_id=t.item_id,
-            currency_code=t.currency_code,
-            notes=t.notes
-        )
-        for t in service.list_transactions()
-    ]
+def list_transactions(
+    service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        return [
+            TransactionResponse(
+                id=t.id,
+                date=t.date,
+                value=t.value,
+                transaction_type_name=t.transaction_type.name,
+                user_id=t.user_id,
+                item_id=t.item_id,
+                currency_code=t.currency_code,
+                notes=t.notes
+            )
+            for t in service.list_transactions()
+        ]
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/{transaction_id}", response_model=TransactionResponse)
 def get_transaction(
     transaction_id: int,
-    service: TransactionService = Depends(get_transaction_service)
+    service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Retrieve a transaction by ID.
-    
-    Args:
-        transaction_id: Transaction ID to retrieve.
-        service: TransactionService instance via dependency injection.
-    
-    Returns:
-        TransactionResponse: Found transaction.
-    
-    Raises:
-        HTTPException: 404 if transaction not found.
-    """
     try:
         t = service.get_transaction(transaction_id)
         return TransactionResponse(
@@ -114,21 +91,11 @@ def get_transaction(
 @router.delete("/{transaction_id}", status_code=204)
 def delete_transaction(
     transaction_id: int,
-    service: TransactionService = Depends(get_transaction_service)
+    service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Delete a transaction by ID.
-    
-    Args:
-        transaction_id: Transaction ID to delete.
-        service: TransactionService instance via dependency injection.
-    
-    Returns:
-        None (HTTP 204 No Content).
-    
-    Raises:
-        HTTPException: 404 if transaction not found.
-    """
     try:
         service.delete_transaction(transaction_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    

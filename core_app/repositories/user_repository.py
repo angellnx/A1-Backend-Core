@@ -1,16 +1,17 @@
 """Repository layer for persisting User domain models.
-
 Converts between Domain Models (User) and Database Models (UserModel).
 """
 from sqlalchemy.orm import Session
 from core_app.database.models.user_model import UserModel
 from core_app.domain.models.user import User
 
+
 class UserRepository:
     """Coordinates User domain model persistence.
-    
+
     Bridges domain password hashing methods with database storage of password hashes.
     """
+
     def __init__(self, session: Session):
         self._session: Session = session
 
@@ -29,6 +30,27 @@ class UserRepository:
 
     def find_by_id(self, user_id: int) -> User | None:
         db = self._session.query(UserModel).filter_by(id=user_id).first()
+        if not db:
+            return None
+        user = User(
+            id=db.id,
+            email=db.email,
+            name=db.name,
+            username=db.username
+        )
+        user._password_hash = db.password
+        return user
+
+    def get_by_username(self, username: str) -> User | None:
+        """Retrieve a User by username.
+
+        Args:
+            username: Unique username to search for.
+
+        Returns:
+            User domain object if found, None otherwise.
+        """
+        db = self._session.query(UserModel).filter_by(username=username).first()
         if not db:
             return None
         user = User(

@@ -16,7 +16,8 @@ from core_app.routers import (
     transaction_router,
     currency_router,
     account_router,
-    budget_router
+    budget_router,
+    auth_router
 )
 
 @asynccontextmanager
@@ -31,6 +32,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(auth_router.router)
 app.include_router(category_router.router)
 app.include_router(transaction_type_router.router)
 app.include_router(item_router.router)

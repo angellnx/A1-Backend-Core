@@ -8,6 +8,11 @@ while keeping the rest of the system decoupled from infrastructure concerns.
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from core_app.database.session import get_session
+
+from fastapi import HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from core_app.core.security import decode_access_token
+
 from core_app.repositories.category_repository import CategoryRepository
 from core_app.repositories.transaction_type_repository import TransactionTypeRepository
 from core_app.repositories.item_repository import ItemRepository
@@ -26,6 +31,39 @@ from core_app.services.currency_service import CurrencyService
 from core_app.services.account_service import AccountService
 from core_app.services.budget_service import BudgetService
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_session)
+):
+    """Validate JWT token and return the authenticated User domain object.
+
+    Args:
+        token: Bearer token extracted from Authorization header.
+        session: Database session.
+
+    Returns:
+        Authenticated User domain object.
+
+    Raises:
+        HTTPException 401: If token is invalid, expired, or user not found.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    username = decode_access_token(token)
+    if username is None:
+        raise credentials_exception
+
+    user_repo = UserRepository(session)
+    user = user_repo.get_by_username(username)
+    if user is None:
+        raise credentials_exception
+
+    return user
 
 def get_category_service(session: Session = Depends(get_session)) -> CategoryService:
     """Provide CategoryService with required dependencies.

@@ -1,8 +1,6 @@
 """HTTP API endpoints for managing accounts.
-
 Exposes CRUD operations for user accounts as REST endpoints. Handles error
 conversion from service layer ValueError to appropriate HTTPException codes.
-
 Status codes:
 - 201: Resource created (POST)
 - 204: Deleted successfully (DELETE)
@@ -12,7 +10,8 @@ Status codes:
 from fastapi import APIRouter, Depends, HTTPException
 from core_app.services.account_service import AccountService
 from core_app.schemas.account_schema import AccountRequest, AccountResponse
-from core_app.dependencies import get_account_service
+from core_app.dependencies import get_account_service, get_current_user
+from core_app.domain.models.user import User
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
@@ -20,25 +19,14 @@ router = APIRouter(prefix="/accounts", tags=["Accounts"])
 @router.post("/", response_model=AccountResponse, status_code=201)
 def create_account(
     body: AccountRequest,
-    service: AccountService = Depends(get_account_service)
+    service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Create a new account.
-    
-    Args:
-        body: Request with name, account_type, and user_id.
-        service: AccountService instance via dependency injection.
-        
-    Returns:
-        AccountResponse: Created account with calculated balance (HTTP 201).
-        
-    Raises:
-        HTTPException: 400 if validation fails, 400 if user not found.
-    """
     try:
         account = service.create_account(
             name=body.name,
             account_type=body.account_type,
-            user_id=body.user_id
+            user_id=current_user.id
         )
         return AccountResponse(
             id=account.id,
@@ -54,20 +42,9 @@ def create_account(
 @router.get("/user/{user_id}", response_model=list[AccountResponse])
 def list_accounts_by_user(
     user_id: int,
-    service: AccountService = Depends(get_account_service)
+    service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """List all accounts for a specific user.
-    
-    Args:
-        user_id: Owner user ID.
-        service: AccountService instance via dependency injection.
-        
-    Returns:
-        list[AccountResponse]: User's accounts.
-        
-    Raises:
-        HTTPException: 404 if user not found.
-    """
     try:
         accounts = service.list_accounts_by_user(user_id)
         return [
@@ -87,20 +64,9 @@ def list_accounts_by_user(
 @router.get("/{account_id}", response_model=AccountResponse)
 def get_account(
     account_id: int,
-    service: AccountService = Depends(get_account_service)
+    service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Retrieve an account by ID.
-    
-    Args:
-        account_id: Account ID to retrieve.
-        service: AccountService instance via dependency injection.
-        
-    Returns:
-        AccountResponse: Found account with calculated balance.
-        
-    Raises:
-        HTTPException: 404 if account not found.
-    """
     try:
         account = service.get_account(account_id)
         return AccountResponse(
@@ -117,20 +83,9 @@ def get_account(
 @router.delete("/{account_id}", status_code=204)
 def delete_account(
     account_id: int,
-    service: AccountService = Depends(get_account_service)
+    service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_user)
 ):
-    """Delete an account by ID.
-    
-    Args:
-        account_id: Account ID to delete.
-        service: AccountService instance via dependency injection.
-        
-    Returns:
-        None (HTTP 204 No Content).
-        
-    Raises:
-        HTTPException: 404 if account not found.
-    """
     try:
         service.delete_account(account_id)
     except ValueError as e:

@@ -8,7 +8,6 @@ from datetime import datetime
 
 class TransactionRequest(BaseModel):
     """Validates transaction creation request from client."""
-    user_id: int
     item_id: int
     account_id: int
     transaction_type_name: str
@@ -24,7 +23,6 @@ class TransactionResponse(BaseModel):
     value: float
     transaction_type_name: str
     currency_code: str
-    user_id: int
     item_id: int
     account_id: int
     notes: str | None = None

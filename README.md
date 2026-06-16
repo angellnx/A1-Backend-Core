@@ -15,12 +15,6 @@ Designed with a social mission: making financial organization accessible to low 
 
 ---
 
-## 📸 Screenshot
-
-![screenshot1](screenshots/screenshot1.png)
-
----
-
 ## 🛠 Tech Stack
 
 **Current:**
@@ -30,9 +24,10 @@ Designed with a social mission: making financial organization accessible to low 
 * Uvicorn 0.24
 * SQLAlchemy 2.0
 * SQLite
+* JWT Authentication (python-jose)
+* Bcrypt password hashing (passlib)
 
 **Planned:**
-* JWT Authentication
 * Pytest
 * Docker
 * PostgreSQL
@@ -45,11 +40,14 @@ Designed with a social mission: making financial organization accessible to low 
 ```bash
 git clone https://github.com/angellnx/A1-Backend-Core
 cd A1-Backend-Core
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn core_app.main:app --reload
 ```
+
+Create a `.env` file in the project root:
+SECRET_KEY=your-secret-key-here
 
 Access: http://127.0.0.1:8000/docs
 
@@ -77,7 +75,7 @@ Core business entities implemented as Python `@dataclass`. Business rules live i
 Key decision: **Rich Model over Anemic Model**. The `Transaction` model automatically normalizes its value on creation based on the transaction type's `is_positive` flag. The `User` model encapsulates password hashing internally. No external layer can create an inconsistent state.
 
 Current entities:
-* `User` — system user with encapsulated password hashing
+* `User` — system user with encapsulated bcrypt password hashing
 * `Transaction` — financial movement with automatic value normalization
 * `TransactionType` — categorizes transactions via `is_positive` business rule
 * `Account` — user financial account with dynamically calculated balance
@@ -94,6 +92,19 @@ Contains the core business logic. Receives repositories via **dependency injecti
 
 ### Router Layer
 Exposes REST API endpoints using FastAPI. Uses **Pydantic schemas** to validate incoming requests and control outgoing responses. Schemas are strictly separated from Domain Models — sensitive data like passwords are never exposed in responses.
+
+---
+
+## 🔐 Authentication
+
+The API uses **JWT (JSON Web Token)** authentication via Bearer tokens.
+
+**Flow:**
+1. Register a user via `POST /auth/register`
+2. Authenticate via `POST /auth/login` to receive an access token
+3. Include the token in the `Authorization: Bearer <token>` header on protected routes
+
+All routes that handle user financial data are protected and require a valid token. User-scoped endpoints enforce ownership — a user cannot access or modify another user's data.
 
 ---
 
@@ -153,10 +164,12 @@ A1-Backend-Core/
 │   ├── routers/
 │   ├── schemas/
 │   ├── core/
-│   │   └── config.py
+│   │   ├── config.py
+│   │   └── security.py
 │   ├── dependencies.py
 │   └── main.py
 │
+├── .env.example
 ├── requirements.txt
 └── README.md
 ```
@@ -167,74 +180,81 @@ A1-Backend-Core/
 * **services** → business logic with dependency injection
 * **routers** → REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
+* **core/security.py** → JWT token creation and validation
 
 ---
 
 ## 📡 API Endpoints
 
-### Users
+### Auth
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/users/` | Create a new user |
-| GET | `/users/` | List all users |
-| GET | `/users/{id}` | Get user by id |
-| DELETE | `/users/{id}` | Delete user |
+| POST | `/auth/register` | Register a new user |
+| POST | `/auth/login` | Authenticate and receive JWT token |
+
+### Users
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/users/` | Create a new user | ✅ |
+| GET | `/users/` | List all users | ✅ |
+| GET | `/users/{id}` | Get user by id | ✅ |
+| DELETE | `/users/{id}` | Delete user | ✅ |
 
 ### Accounts
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/accounts/` | Create an account |
-| GET | `/accounts/user/{user_id}` | List accounts by user |
-| GET | `/accounts/{id}` | Get account by id |
-| DELETE | `/accounts/{id}` | Delete account |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/accounts/` | Create an account | ✅ |
+| GET | `/accounts/user/{user_id}` | List accounts by user | ✅ |
+| GET | `/accounts/{id}` | Get account by id | ✅ |
+| DELETE | `/accounts/{id}` | Delete account | ✅ |
 
 ### Transaction Types
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/transaction-types/` | Create a transaction type |
-| GET | `/transaction-types/` | List all transaction types |
-| GET | `/transaction-types/{name}` | Get transaction type by name |
-| DELETE | `/transaction-types/{name}` | Delete transaction type |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/transaction-types/` | Create a transaction type | ✅ |
+| GET | `/transaction-types/` | List all transaction types | ✅ |
+| GET | `/transaction-types/{name}` | Get transaction type by name | ✅ |
+| DELETE | `/transaction-types/{name}` | Delete transaction type | ✅ |
 
 ### Categories
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/categories/` | Create a category |
-| GET | `/categories/` | List all categories |
-| GET | `/categories/{name}` | Get category by name |
-| DELETE | `/categories/{name}` | Delete category |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/categories/` | Create a category | ✅ |
+| GET | `/categories/` | List all categories | ✅ |
+| GET | `/categories/{name}` | Get category by name | ✅ |
+| DELETE | `/categories/{name}` | Delete category | ✅ |
 
 ### Items
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/items/` | Create an item |
-| GET | `/items/` | List all items |
-| GET | `/items/{id}` | Get item by id |
-| DELETE | `/items/{id}` | Delete item |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/items/` | Create an item | ✅ |
+| GET | `/items/` | List all items | ✅ |
+| GET | `/items/{id}` | Get item by id | ✅ |
+| DELETE | `/items/{id}` | Delete item | ✅ |
 
 ### Currencies
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/currencies/` | Create a currency |
-| GET | `/currencies/` | List all currencies |
-| GET | `/currencies/{code}` | Get currency by code |
-| DELETE | `/currencies/{code}` | Delete currency |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/currencies/` | Create a currency | ✅ |
+| GET | `/currencies/` | List all currencies | ✅ |
+| GET | `/currencies/{code}` | Get currency by code | ✅ |
+| DELETE | `/currencies/{code}` | Delete currency | ✅ |
 
 ### Budgets
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/budgets/` | Create a budget |
-| GET | `/budgets/user/{user_id}` | List budgets by user |
-| GET | `/budgets/{id}` | Get budget by id |
-| DELETE | `/budgets/{id}` | Delete budget |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/budgets/` | Create a budget | ✅ |
+| GET | `/budgets/user/{user_id}` | List budgets by user | ✅ |
+| GET | `/budgets/{id}` | Get budget by id | ✅ |
+| DELETE | `/budgets/{id}` | Delete budget | ✅ |
 
 ### Transactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/transactions/` | Create a transaction |
-| GET | `/transactions/` | List all transactions |
-| GET | `/transactions/{id}` | Get transaction by id |
-| DELETE | `/transactions/{id}` | Delete transaction |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/transactions/` | Create a transaction | ✅ |
+| GET | `/transactions/` | List all transactions | ✅ |
+| GET | `/transactions/{id}` | Get transaction by id | ✅ |
+| DELETE | `/transactions/{id}` | Delete transaction | ✅ |
 
 ---
 
@@ -262,11 +282,13 @@ A1-Backend-Core/
 * Better error handling
 * API versioning
 
-### 🔲 Sprint 4 — Authentication & Security
-* JWT authentication
-* Login and registration
-* Protected routes
-* Password hashing improvements (bcrypt/argon2)
+### ✅ Sprint 4 — Authentication & Security
+* JWT authentication via python-jose
+* Login and registration endpoints
+* Protected routes with Bearer token validation
+* Bcrypt password hashing via passlib
+* User ownership enforcement (403 on unauthorized access)
+* SECRET_KEY via environment variable
 
 ### 🔲 Sprint 5 — Testing
 * Unit tests for services
@@ -331,10 +353,11 @@ The system collects and stores only the information strictly necessary for the p
 
 ### Security by Design
 Security is incorporated into the architecture from the beginning:
-* Secure password hashing
-* Protected API routes
-* Authentication mechanisms
-* Controlled data access
+* Bcrypt password hashing
+* JWT-protected API routes
+* Token-based authentication
+* User ownership enforcement on sensitive endpoints
+* SECRET_KEY managed via environment variables
 
 ### User Data Control
 Future versions will include mechanisms allowing users to manage and delete their personal data.

@@ -3,6 +3,10 @@
 Coordinates user operations by validating inputs and managing password
 hashing through the domain model.
 """
+import email
+from unicodedata import name
+
+from core_app.domain.models import user
 from core_app.domain.models.user import User
 from core_app.repositories.user_repository import UserRepository
 
@@ -26,7 +30,8 @@ class UserService:
             raise ValueError("Username is required")
         if not password:
             raise ValueError("Password is required")
-
+        if self.repository.get_by_username(username):
+            raise ValueError(f"Username '{username}' already exists")
         user = User(id=0, email=email, name=name, username=username, phone=phone)
         user.set_password(password)
         return self.repository.create(user)

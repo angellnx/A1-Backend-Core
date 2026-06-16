@@ -1,5 +1,4 @@
 """Pydantic models defining the API contract for budget operations.
-
 Request and response schemas handle the composite budget concept:
 budgets are scoped to user + category + currency + month + year.
 """
@@ -11,7 +10,6 @@ class BudgetRequest(BaseModel):
     amount: float
     month: int
     year: int
-    user_id: int
     category_name: str
     currency_code: str
 
@@ -25,3 +23,4 @@ class BudgetResponse(BaseModel):
     user_id: int
     category_name: str
     currency_code: str
+    
