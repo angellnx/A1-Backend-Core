@@ -47,9 +47,13 @@ uvicorn core_app.main:app --reload
 ```
 
 Create a `.env` file in the project root:
+```
 SECRET_KEY=your-secret-key-here
+```
 
 Access: http://127.0.0.1:8000/docs
+
+All endpoints are versioned under `/api/v1`.
 
 ---
 
@@ -85,26 +89,28 @@ Current entities:
 * `Currency` — monetary unit following ISO 4217 standard
 
 ### Repository Layer
-Handles data persistence through SQLAlchemy ORM-backed classes. Each repository converts between Domain Models (pure business objects) and ORM Models (SQLAlchemy mapped classes), keeping the domain layer completely free of infrastructure concerns. Queries are scoped per user where relevant (accounts, budgets).
+Handles data persistence through SQLAlchemy ORM-backed classes. Each repository converts between Domain Models (pure business objects) and ORM Models (SQLAlchemy mapped classes), keeping the domain layer completely free of infrastructure concerns. Queries are scoped per authenticated user where relevant (accounts, budgets, transactions), with support for filtering and pagination.
 
 ### Service Layer
-Contains the core business logic. Receives repositories via **dependency injection** — never instantiates them directly. Responsible for validating inputs, resolving entity relationships, and coordinating persistence.
+Contains the core business logic. Receives repositories via **dependency injection** — never instantiates them directly. Responsible for validating inputs, resolving entity relationships, enforcing resource ownership, and coordinating persistence.
 
 ### Router Layer
-Exposes REST API endpoints using FastAPI. Uses **Pydantic schemas** to validate incoming requests and control outgoing responses. Schemas are strictly separated from Domain Models — sensitive data like passwords are never exposed in responses.
+Exposes REST API endpoints using FastAPI, versioned under `/api/v1`. Uses **Pydantic schemas** to validate incoming requests and control outgoing responses. Schemas are strictly separated from Domain Models — sensitive data like passwords are never exposed in responses.
 
 ---
 
-## 🔐 Authentication
+## 🔐 Authentication & Authorization
 
 The API uses **JWT (JSON Web Token)** authentication via Bearer tokens.
 
 **Flow:**
-1. Register a user via `POST /auth/register`
-2. Authenticate via `POST /auth/login` to receive an access token
+1. Register a user via `POST /api/v1/auth/register`
+2. Authenticate via `POST /api/v1/auth/login` to receive an access token
 3. Include the token in the `Authorization: Bearer <token>` header on protected routes
 
-All routes that handle user financial data are protected and require a valid token. User-scoped endpoints enforce ownership — a user cannot access or modify another user's data.
+All routes that handle user financial data are protected and require a valid token. Beyond authentication, the API enforces **resource ownership**: a user can only access, modify, or delete their own accounts, budgets, and transactions — even with a valid token, attempting to access another user's resource returns `403 Forbidden`.
+
+User-scoped listing endpoints use the authenticated identity directly (`GET /accounts/me`, `GET /budgets/me`) rather than accepting a `user_id` in the URL, eliminating the possibility of ID-based access to other users' data.
 
 ---
 
@@ -112,7 +118,7 @@ All routes that handle user financial data are protected and require a valid tok
 
 The system is designed around **financial transactions**.
 
-Each transaction is associated with a user, an account, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense.
+Each transaction is associated with a user, an account, an item, and a transaction type. The transaction type carries an `is_positive` flag that determines whether the value represents an income or an expense. The `user_id` is always inferred from the authenticated token, never accepted from the client.
 
 Accounts aggregate transactions and expose a dynamic balance calculated from all linked movements. Budgets define spending limits per category, currency, and month/year — enforcing a composite uniqueness constraint that prevents duplicate budget definitions.
 
@@ -121,7 +127,6 @@ To simplify data entry, the API automatically normalizes transaction values. Use
 **Request:**
 ```json
 {
-  "user_id": 1,
   "account_id": 1,
   "item_id": 1,
   "transaction_type_name": "Expense",
@@ -144,6 +149,21 @@ To simplify data entry, the API automatically normalizes transaction values. Use
   "notes": null
 }
 ```
+
+---
+
+## 🔍 Filtering, Pagination & Error Handling
+
+Listing endpoints support pagination via `skip` and `limit` query parameters (defaults: `skip=0`, `limit=20`).
+
+The `GET /transactions/` endpoint additionally supports optional filters:
+* `transaction_type_name` — filter by transaction type
+* `currency_code` — filter by currency
+* `date_from` / `date_to` — filter by date range (ISO 8601)
+
+Results are always scoped to the authenticated user and ordered by most recent first.
+
+**Global error handling:** unhandled database integrity violations (e.g. unique constraint conflicts) are caught by a global exception handler and converted into clean `409 Conflict` responses, instead of exposing raw stack traces to the client.
 
 ---
 
@@ -176,15 +196,17 @@ A1-Backend-Core/
 
 * **domain/models** → business entities with encapsulated rules
 * **database/** → SQLAlchemy setup, including session, base, and ORM models
-* **repositories** → database-backed persistence with domain/ORM conversion
-* **services** → business logic with dependency injection
-* **routers** → REST endpoints with request/response schemas
+* **repositories** → database-backed persistence with domain/ORM conversion, filtering, and pagination
+* **services** → business logic with dependency injection and ownership enforcement
+* **routers** → versioned REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
 * **core/security.py** → JWT token creation and validation
 
 ---
 
 ## 📡 API Endpoints
+
+All endpoints are prefixed with `/api/v1`.
 
 ### Auth
 | Method | Endpoint | Description |
@@ -197,16 +219,16 @@ A1-Backend-Core/
 |--------|----------|-------------|------|
 | POST | `/users/` | Create a new user | ✅ |
 | GET | `/users/` | List all users | ✅ |
-| GET | `/users/{id}` | Get user by id | ✅ |
-| DELETE | `/users/{id}` | Delete user | ✅ |
+| GET | `/users/{id}` | Get user by id (own data only) | ✅ |
+| DELETE | `/users/{id}` | Delete user (own data only) | ✅ |
 
 ### Accounts
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/accounts/` | Create an account | ✅ |
-| GET | `/accounts/user/{user_id}` | List accounts by user | ✅ |
-| GET | `/accounts/{id}` | Get account by id | ✅ |
-| DELETE | `/accounts/{id}` | Delete account | ✅ |
+| GET | `/accounts/me` | List authenticated user's accounts (paginated) | ✅ |
+| GET | `/accounts/{id}` | Get account by id (own data only) | ✅ |
+| DELETE | `/accounts/{id}` | Delete account (own data only) | ✅ |
 
 ### Transaction Types
 | Method | Endpoint | Description | Auth |
@@ -244,15 +266,15 @@ A1-Backend-Core/
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/budgets/` | Create a budget | ✅ |
-| GET | `/budgets/user/{user_id}` | List budgets by user | ✅ |
-| GET | `/budgets/{id}` | Get budget by id | ✅ |
-| DELETE | `/budgets/{id}` | Delete budget | ✅ |
+| GET | `/budgets/me` | List authenticated user's budgets (paginated) | ✅ |
+| GET | `/budgets/{id}` | Get budget by id (own data only) | ✅ |
+| DELETE | `/budgets/{id}` | Delete budget (own data only) | ✅ |
 
 ### Transactions
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/transactions/` | Create a transaction | ✅ |
-| GET | `/transactions/` | List all transactions | ✅ |
+| GET | `/transactions/` | List authenticated user's transactions (paginated, filterable) | ✅ |
 | GET | `/transactions/{id}` | Get transaction by id | ✅ |
 | DELETE | `/transactions/{id}` | Delete transaction | ✅ |
 
@@ -277,17 +299,19 @@ A1-Backend-Core/
 * Added structured docstrings across all layers
 * Set up session management and FastAPI dependency injection
 
-### 🔲 Sprint 3 — API Improvements
-* Pagination and filtering
-* Better error handling
-* API versioning
+### ✅ Sprint 3 — API Improvements
+* Pagination (`skip`/`limit`) on all listing endpoints
+* Filtering on transactions (type, currency, date range)
+* `/me` endpoints replacing `user_id`-in-URL patterns to prevent ID-based access
+* Global exception handler for database integrity violations (409 Conflict)
+* API versioning under `/api/v1`
 
 ### ✅ Sprint 4 — Authentication & Security
 * JWT authentication via python-jose
 * Login and registration endpoints
 * Protected routes with Bearer token validation
 * Bcrypt password hashing via passlib
-* User ownership enforcement (403 on unauthorized access)
+* Resource ownership enforcement (403 on unauthorized access to another user's data)
 * SECRET_KEY via environment variable
 
 ### 🔲 Sprint 5 — Testing
@@ -356,8 +380,9 @@ Security is incorporated into the architecture from the beginning:
 * Bcrypt password hashing
 * JWT-protected API routes
 * Token-based authentication
-* User ownership enforcement on sensitive endpoints
+* Resource ownership enforcement on every sensitive endpoint
 * SECRET_KEY managed via environment variables
+* Global error handling that avoids leaking internal stack traces
 
 ### User Data Control
 Future versions will include mechanisms allowing users to manage and delete their personal data.

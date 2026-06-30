@@ -1,5 +1,4 @@
 """Business logic service for managing Transactions.
-
 Coordinates transaction operations by validating inputs, verifying related
 entities, and enforcing value normalization based on transaction type.
 """
@@ -13,13 +12,14 @@ from core_app.repositories.currency_repository import CurrencyRepository
 
 class TransactionService:
     """Orchestrates transaction business logic and repository coordination.
-    
+
     Responsibilities:
     - Validate transaction inputs (value > 0)
     - Verify transaction type, item, and currency exist
     - The domain model normalizes value sign based on transaction type
     - Default transaction date to current time if not provided
     """
+
     def __init__(
         self,
         repository: TransactionRepository,
@@ -43,7 +43,6 @@ class TransactionService:
         date: datetime | None = None,
         notes: str | None = None
     ) -> Transaction:
-
         if value <= 0:
             raise ValueError("Value must be greater than zero")
 
@@ -72,7 +71,6 @@ class TransactionService:
             currency_code=currency.code,
             notes=notes
         )
-
         return self.repository.create(transaction)
 
     def get_transaction(self, transaction_id: int) -> Transaction:
@@ -83,6 +81,40 @@ class TransactionService:
 
     def list_transactions(self) -> list[Transaction]:
         return self.repository.find_all()
+
+    def list_transactions_by_user(
+        self,
+        user_id: int,
+        transaction_type_name: str | None = None,
+        currency_code: str | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+        skip: int = 0,
+        limit: int = 20
+    ) -> list[Transaction]:
+        """List transactions for a user with optional filters and pagination.
+
+        Args:
+            user_id: Owner user ID, inferred from authenticated token.
+            transaction_type_name: Optional filter by transaction type.
+            currency_code: Optional filter by currency.
+            date_from: Optional start date filter (inclusive).
+            date_to: Optional end date filter (inclusive).
+            skip: Number of records to skip for pagination.
+            limit: Maximum number of records to return.
+
+        Returns:
+            Filtered and paginated list of Transaction domain objects.
+        """
+        return self.repository.find_by_user(
+            user_id=user_id,
+            transaction_type_name=transaction_type_name,
+            currency_code=currency_code,
+            date_from=date_from,
+            date_to=date_to,
+            skip=skip,
+            limit=limit
+        )
 
     def delete_transaction(self, transaction_id: int) -> None:
         transaction = self.repository.find_by_id(transaction_id)

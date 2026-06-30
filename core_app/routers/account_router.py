@@ -5,6 +5,7 @@ Status codes:
 - 201: Resource created (POST)
 - 204: Deleted successfully (DELETE)
 - 400: Bad request (validation failed)
+- 403: Forbidden (access to another user's resource)
 - 404: Resource not found
 """
 from fastapi import APIRouter, Depends, HTTPException
@@ -39,14 +40,26 @@ def create_account(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/user/{user_id}", response_model=list[AccountResponse])
-def list_accounts_by_user(
-    user_id: int,
+@router.get("/me", response_model=list[AccountResponse])
+def list_my_accounts(
     service: AccountService = Depends(get_account_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    skip: int = 0,
+    limit: int = 20
 ):
+    """List all accounts for the authenticated user.
+
+    Args:
+        service: AccountService instance via dependency injection.
+        current_user: Authenticated user from JWT token.
+        skip: Number of records to skip for pagination.
+        limit: Maximum number of records to return.
+
+    Returns:
+        list[AccountResponse]: Paginated accounts belonging to the user.
+    """
     try:
-        accounts = service.list_accounts_by_user(user_id)
+        accounts = service.list_accounts_by_user(current_user.id, skip=skip, limit=limit)
         return [
             AccountResponse(
                 id=a.id,
@@ -68,7 +81,7 @@ def get_account(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        account = service.get_account(account_id)
+        account = service.get_account(account_id, current_user_id=current_user.id)
         return AccountResponse(
             id=account.id,
             name=account.name,
@@ -76,6 +89,8 @@ def get_account(
             user_id=account.user_id,
             balance=account.balance
         )
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -87,6 +102,9 @@ def delete_account(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        service.delete_account(account_id)
+        service.delete_account(account_id, current_user_id=current_user.id)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    

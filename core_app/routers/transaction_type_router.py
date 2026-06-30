@@ -81,4 +81,3 @@ def delete_transaction_type(name: str, service: TransactionTypeService = Depends
         service.delete_transaction_type(name)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    

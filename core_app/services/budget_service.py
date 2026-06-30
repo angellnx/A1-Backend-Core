@@ -77,20 +77,60 @@ class BudgetService:
         )
         return self.repository.create(budget)
 
-    def get_budget(self, budget_id: int) -> Budget:
+    def get_budget(self, budget_id: int, current_user_id: int) -> Budget:
+        """Retrieve a budget by ID, enforcing ownership.
+
+        Args:
+            budget_id: Budget ID to find.
+            current_user_id: ID of the authenticated user making the request.
+
+        Returns:
+            Budget: The found domain model.
+
+        Raises:
+            ValueError: If budget not found.
+            PermissionError: If the budget belongs to a different user.
+        """
         budget = self.repository.find_by_id(budget_id)
         if not budget:
             raise ValueError(f"Budget with id {budget_id} not found")
+        if budget.user_id != current_user_id:
+            raise PermissionError("You do not have access to this budget")
         return budget
 
-    def list_budgets_by_user(self, user_id: int) -> list[Budget]:
+    def list_budgets_by_user(self, user_id: int, skip: int = 0, limit: int = 20) -> list[Budget]:
+        """Retrieve paginated budgets for a specific user.
+
+        Args:
+            user_id: Owner user ID (must exist).
+            skip: Number of records to skip for pagination.
+            limit: Maximum number of records to return.
+
+        Returns:
+            list[Budget]: Paginated budgets for the user.
+
+        Raises:
+            ValueError: If user doesn't exist.
+        """
         user = self.user_repository.find_by_id(user_id)
         if not user:
             raise ValueError(f"User with id {user_id} not found")
-        return self.repository.find_all_by_user(user_id)
+        return self.repository.find_all_by_user(user_id, skip=skip, limit=limit)
 
-    def delete_budget(self, budget_id: int) -> None:
-        budget = self.repository.find_by_id(budget_id)
-        if not budget:
-            raise ValueError(f"Budget with id {budget_id} not found")
-        self.repository.delete(budget_id)
+def delete_budget(self, budget_id: int, current_user_id: int) -> None:
+    """Delete a budget by ID, enforcing ownership.
+
+    Args:
+        budget_id: Budget ID to delete.
+        current_user_id: ID of the authenticated user making the request.
+
+    Raises:
+        ValueError: If budget not found.
+        PermissionError: If the budget belongs to a different user.
+    """
+    budget = self.repository.find_by_id(budget_id)
+    if not budget:
+        raise ValueError(f"Budget with id {budget_id} not found")
+    if budget.user_id != current_user_id:
+        raise PermissionError("You do not have access to this budget")
+    self.repository.delete(budget_id)

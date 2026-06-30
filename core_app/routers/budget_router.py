@@ -39,14 +39,26 @@ def create_budget(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/user/{user_id}", response_model=list[BudgetResponse])
-def list_budgets_by_user(
-    user_id: int,
+@router.get("/me", response_model=list[BudgetResponse])
+def list_my_budgets(
     service: BudgetService = Depends(get_budget_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    skip: int = 0,
+    limit: int = 20
 ):
+    """List all budgets for the authenticated user.
+
+    Args:
+        service: BudgetService instance via dependency injection.
+        current_user: Authenticated user from JWT token.
+        skip: Number of records to skip for pagination.
+        limit: Maximum number of records to return.
+
+    Returns:
+        list[BudgetResponse]: Paginated budgets belonging to the user.
+    """
     try:
-        budgets = service.list_budgets_by_user(user_id)
+        budgets = service.list_budgets_by_user(current_user.id, skip=skip, limit=limit)
         return [
             BudgetResponse(
                 id=b.id,
@@ -70,7 +82,7 @@ def get_budget(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        budget = service.get_budget(budget_id)
+        budget = service.get_budget(budget_id, current_user_id=current_user.id)
         return BudgetResponse(
             id=budget.id,
             amount=budget.amount,
@@ -80,6 +92,8 @@ def get_budget(
             category_name=budget.category.name,
             currency_code=budget.currency_code
         )
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -91,6 +105,8 @@ def delete_budget(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        service.delete_budget(budget_id)
+        service.delete_budget(budget_id, current_user_id=current_user.id)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

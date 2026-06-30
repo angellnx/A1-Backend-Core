@@ -3,6 +3,7 @@
 Exposes CRUD operations for financial transactions as REST endpoints.
 Transactions record income and expense movements affecting account balances.
 """
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from core_app.services.transaction_service import TransactionService
 from core_app.schemas.transaction_schema import TransactionRequest, TransactionResponse
@@ -46,8 +47,29 @@ def create_transaction(
 @router.get("/", response_model=list[TransactionResponse])
 def list_transactions(
     service: TransactionService = Depends(get_transaction_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    transaction_type_name: str | None = None,
+    currency_code: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    skip: int = 0,
+    limit: int = 20
 ):
+    """List transactions for the authenticated user with optional filters.
+
+    Args:
+        service: TransactionService instance via dependency injection.
+        current_user: Authenticated user from JWT token.
+        transaction_type_name: Optional filter by transaction type name.
+        currency_code: Optional filter by currency code.
+        date_from: Optional start date filter (ISO 8601).
+        date_to: Optional end date filter (ISO 8601).
+        skip: Number of records to skip for pagination.
+        limit: Maximum number of records to return (max 100).
+
+    Returns:
+        list[TransactionResponse]: Filtered and paginated user transactions.
+    """
     try:
         return [
             TransactionResponse(
@@ -60,7 +82,15 @@ def list_transactions(
                 currency_code=t.currency_code,
                 notes=t.notes
             )
-            for t in service.list_transactions()
+            for t in service.list_transactions_by_user(
+                user_id=current_user.id,
+                transaction_type_name=transaction_type_name,
+                currency_code=currency_code,
+                date_from=date_from,
+                date_to=date_to,
+                skip=skip,
+                limit=limit
+            )
         ]
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -98,4 +128,3 @@ def delete_transaction(
         service.delete_transaction(transaction_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    

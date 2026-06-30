@@ -1,5 +1,4 @@
 """Repository layer for persisting Budget domain models.
-
 Converts between Domain Models (Budget) and Database Models (BudgetModel).
 """
 from sqlalchemy.orm import Session
@@ -10,11 +9,12 @@ from core_app.domain.models.category import Category
 
 class BudgetRepository:
     """Coordinates Budget domain model persistence.
-    
+
     Composite uniqueness (user + category + currency + month + year) is enforced
     at the database level; find_by_user_category_currency_month_year() is used
     to check for duplicates before creation.
     """
+
     def __init__(self, session: Session):
         self._session = session
 
@@ -37,34 +37,23 @@ class BudgetRepository:
         db = self._session.query(BudgetModel).filter_by(id=budget_id).first()
         if not db:
             return None
-        return Budget(
-            id=db.id,
-            amount=db.amount,
-            month=db.month,
-            year=db.year,
-            user_id=db.user_id,
-            category=Category(
-                name=db.category.name,
-                color=db.category.color
-            ),
-            currency_code=db.currency_code
-        )
+        return self._to_domain(db)
 
-    def find_all_by_user(self, user_id: int) -> list[Budget]:
+    def find_all_by_user(self, user_id: int, skip: int = 0, limit: int = 20) -> list[Budget]:
+        """Retrieve paginated budgets for a specific user.
+
+        Args:
+            user_id: Owner user ID.
+            skip: Number of records to skip for pagination.
+            limit: Maximum number of records to return.
+
+        Returns:
+            Paginated list of Budget domain objects.
+        """
+        query = self._session.query(BudgetModel).filter_by(user_id=user_id)
         return [
-            Budget(
-                id=db.id,
-                amount=db.amount,
-                month=db.month,
-                year=db.year,
-                user_id=db.user_id,
-                category=Category(
-                    name=db.category.name,
-                    color=db.category.color
-                ),
-                currency_code=db.currency_code
-            )
-            for db in self._session.query(BudgetModel).filter_by(user_id=user_id).all()
+            self._to_domain(db)
+            for db in query.offset(skip).limit(limit).all()
         ]
 
     def find_by_user_category_currency_month_year(
@@ -84,6 +73,16 @@ class BudgetRepository:
         ).first()
         if not db:
             return None
+        return self._to_domain(db)
+
+    def delete(self, budget_id: int) -> None:
+        db = self._session.query(BudgetModel).filter_by(id=budget_id).first()
+        if not db:
+            raise ValueError(f"Budget with id {budget_id} not found")
+        self._session.delete(db)
+        self._session.commit()
+
+    def _to_domain(self, db: BudgetModel) -> Budget:
         return Budget(
             id=db.id,
             amount=db.amount,
@@ -96,10 +95,3 @@ class BudgetRepository:
             ),
             currency_code=db.currency_code
         )
-
-    def delete(self, budget_id: int) -> None:
-        db = self._session.query(BudgetModel).filter_by(id=budget_id).first()
-        if not db:
-            raise ValueError(f"Budget with id {budget_id} not found")
-        self._session.delete(db)
-        self._session.commit()

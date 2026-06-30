@@ -32,14 +32,7 @@ class UserRepository:
         db = self._session.query(UserModel).filter_by(id=user_id).first()
         if not db:
             return None
-        user = User(
-            id=db.id,
-            email=db.email,
-            name=db.name,
-            username=db.username
-        )
-        user._password_hash = db.password
-        return user
+        return self._to_domain(db)
 
     def get_by_username(self, username: str) -> User | None:
         """Retrieve a User by username.
@@ -53,6 +46,40 @@ class UserRepository:
         db = self._session.query(UserModel).filter_by(username=username).first()
         if not db:
             return None
+        return self._to_domain(db)
+
+    def get_by_email(self, email: str) -> User | None:
+        """Retrieve a User by email.
+
+        Args:
+            email: Email address to search for.
+
+        Returns:
+            User domain object if found, None otherwise.
+        """
+        db = self._session.query(UserModel).filter_by(email=email).first()
+        if not db:
+            return None
+        return self._to_domain(db)
+
+    def find_all(self) -> list[User]:
+        return [self._to_domain(db) for db in self._session.query(UserModel).all()]
+
+    def delete(self, user_id: int) -> None:
+        db = self._session.query(UserModel).filter_by(id=user_id).first()
+        if db:
+            self._session.delete(db)
+            self._session.commit()
+
+    def _to_domain(self, db: UserModel) -> User:
+        """Convert a UserModel ORM object to a User domain object.
+
+        Args:
+            db: SQLAlchemy ORM instance.
+
+        Returns:
+            User domain object with password hash attached.
+        """
         user = User(
             id=db.id,
             email=db.email,
@@ -61,22 +88,3 @@ class UserRepository:
         )
         user._password_hash = db.password
         return user
-
-    def find_all(self) -> list[User]:
-        users = []
-        for db in self._session.query(UserModel).all():
-            user = User(
-                id=db.id,
-                email=db.email,
-                name=db.name,
-                username=db.username
-            )
-            user._password_hash = db.password
-            users.append(user)
-        return users
-
-    def delete(self, user_id: int) -> None:
-        db = self._session.query(UserModel).filter_by(id=user_id).first()
-        if db:
-            self._session.delete(db)
-            self._session.commit()
