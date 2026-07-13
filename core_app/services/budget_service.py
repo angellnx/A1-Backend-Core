@@ -3,6 +3,7 @@
 Coordinates budget operations by validating inputs, verifying related
 entities (user, category, currency), and enforcing uniqueness constraints.
 """
+
 from core_app.domain.models.budget import Budget
 from core_app.repositories.budget_repository import BudgetRepository
 from core_app.repositories.user_repository import UserRepository
@@ -12,19 +13,20 @@ from core_app.repositories.currency_repository import CurrencyRepository
 
 class BudgetService:
     """Orchestrates budget business logic and repository coordination.
-    
+
     Responsibilities:
     - Validate budget inputs (amount > 0, month 1-12)
     - Verify user, category, and currency exist
     - Enforce unique constraint: user + category + currency + month + year
     - Filter budgets by user for scoped access
     """
+
     def __init__(
         self,
         repository: BudgetRepository,
         user_repository: UserRepository,
         category_repository: CategoryRepository,
-        currency_repository: CurrencyRepository
+        currency_repository: CurrencyRepository,
     ):
         self.repository = repository
         self.user_repository = user_repository
@@ -38,7 +40,7 @@ class BudgetService:
         year: int,
         user_id: int,
         category_name: str,
-        currency_code: str
+        currency_code: str,
     ) -> Budget:
         if amount <= 0:
             raise ValueError("Amount must be greater than zero")
@@ -73,7 +75,7 @@ class BudgetService:
             year=year,
             user_id=user_id,
             category=category,
-            currency_code=currency_code
+            currency_code=currency_code,
         )
         return self.repository.create(budget)
 
@@ -98,7 +100,9 @@ class BudgetService:
             raise PermissionError("You do not have access to this budget")
         return budget
 
-    def list_budgets_by_user(self, user_id: int, skip: int = 0, limit: int = 20) -> list[Budget]:
+    def list_budgets_by_user(
+        self, user_id: int, skip: int = 0, limit: int = 20
+    ) -> list[Budget]:
         """Retrieve paginated budgets for a specific user.
 
         Args:
@@ -117,20 +121,18 @@ class BudgetService:
             raise ValueError(f"User with id {user_id} not found")
         return self.repository.find_all_by_user(user_id, skip=skip, limit=limit)
 
-def delete_budget(self, budget_id: int, current_user_id: int) -> None:
-    """Delete a budget by ID, enforcing ownership.
-
-    Args:
-        budget_id: Budget ID to delete.
-        current_user_id: ID of the authenticated user making the request.
-
-    Raises:
-        ValueError: If budget not found.
+    def delete_budget(self, budget_id: int, current_user_id: int) -> None:
+        """Delete a budget by ID, enforcing ownership.
+        Args:
+            budget_id: Budget ID to delete.
+            current_user_id: ID of the authenticated user making the request.
+        Raises:
+            ValueError: If budget not found.
         PermissionError: If the budget belongs to a different user.
-    """
-    budget = self.repository.find_by_id(budget_id)
-    if not budget:
-        raise ValueError(f"Budget with id {budget_id} not found")
-    if budget.user_id != current_user_id:
-        raise PermissionError("You do not have access to this budget")
-    self.repository.delete(budget_id)
+        """
+        budget = self.repository.find_by_id(budget_id)
+        if not budget:
+            raise ValueError(f"Budget with id {budget_id} not found")
+        if budget.user_id != current_user_id:
+            raise PermissionError("You do not have access to this budget")
+        self.repository.delete(budget_id)
