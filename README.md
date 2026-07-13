@@ -3,9 +3,11 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
 ![Architecture](https://img.shields.io/badge/architecture-layered-blue)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+[![License](https://img.shields.io/badge/license-Anthropoi%20License%20v1.0-blue)](https://github.com/angellnx/A1-Backend-Core/blob/main/LICENSE)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![API](https://img.shields.io/badge/API-REST-blue)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+
 
 REST API for personal finance management — built with FastAPI, layered architecture, and rich domain models.
 
@@ -26,9 +28,10 @@ Designed with a social mission: making financial organization accessible to low 
 * SQLite
 * JWT Authentication (python-jose)
 * Bcrypt password hashing (passlib)
+* Pytest (unit, repository and API integration tests)
+* httpx2 (test client for API integration tests)
 
 **Planned:**
-* Pytest
 * Docker
 * PostgreSQL
 * N8N
@@ -167,6 +170,21 @@ Results are always scoped to the authenticated user and ordered by most recent f
 
 ---
 
+## 🧪 Testing
+
+The project has a full test suite covering the Service, Repository, and API layers: unit tests with mocked repositories, repository integration tests against an in-memory SQLite database, and API integration tests covering authentication, resource ownership, pagination, filtering, and the global error handler.
+
+Tests never touch the production database (`a1.db`) or real environment config — everything runs isolated.
+
+```bash
+pip install pytest fastapi[all] httpx2 --break-system-packages
+pytest tests/ -v
+```
+
+See [tests/README.md](./tests/README.md) for full details on structure, coverage, and testing philosophy.
+
+---
+
 ## 📂 Project Structure
 
 ```
@@ -189,6 +207,14 @@ A1-Backend-Core/
 │   ├── dependencies.py
 │   └── main.py
 │
+├── tests/
+│   ├── conftest.py
+│   ├── unit/
+│   │   └── services/
+│   └── integration/
+│       ├── repositories/
+│       └── api/
+│
 ├── .env.example
 ├── requirements.txt
 └── README.md
@@ -201,6 +227,7 @@ A1-Backend-Core/
 * **routers** → versioned REST endpoints with request/response schemas
 * **schemas** → Pydantic contracts separating API layer from domain
 * **core/security.py** → JWT token creation and validation
+* **tests/** → unit, repository, and API integration tests (see [tests/README.md](./tests/README.md))
 
 ---
 
@@ -314,10 +341,14 @@ All endpoints are prefixed with `/api/v1`.
 * Resource ownership enforcement (403 on unauthorized access to another user's data)
 * SECRET_KEY via environment variable
 
-### 🔲 Sprint 5 — Testing
-* Unit tests for services
-* Repository tests
-* API integration tests
+### ✅ Sprint 5 — Testing
+* Unit tests for all 8 services (Account, Budget, Category, Currency, Item, Transaction, TransactionType, User) with mocked repositories
+* Repository integration tests against an in-memory SQLite database, covering persistence, pagination, and the Budget composite uniqueness constraint
+* API integration tests covering the auth flow, resource ownership (403 on cross-user access), pagination/filtering, and the global 409 error handler
+* Migrated `core/config.py` from class-based `Config` to Pydantic v2's `SettingsConfigDict`
+* Bug fixes uncovered while writing tests:
+  * Fixed an indentation bug in `BudgetService.delete_budget` (method was defined outside the class, making it uncallable)
+  * Fixed `TransactionResponse` missing `account_id` in create/list/get transaction endpoints (was incorrectly passing `user_id`, a field not present in the schema)
 
 ### 🔲 Sprint 6 — Privacy & Data Protection
 * User data deletion mechanisms
@@ -419,12 +450,13 @@ Developer focused on **Python, Backend Engineering and Data Systems**, currently
 
 ## 📜 License
 
-This project is licensed under the **Apache License 2.0**.
+This project is licensed under the [Anthropoi License v1.0](./LICENSE) — a **source-available** license.
 
-You are free to use, modify, and distribute this project, provided that:
+You are free to use, modify, and redistribute this project for personal, non-commercial purposes, provided that:
 
-* The original copyright notice and attribution to the author are preserved
+* This is used by an Individual, not on behalf of or for the benefit of an Organization
+* The original copyright notice and license text are preserved
 * Any modified versions clearly state the changes made
-* The license text is included in any redistribution
+* No AI Service is integrated into the Software or a Derivative Work — only Local Models are permitted
 
 See the [LICENSE](./LICENSE) file for the full license text.

@@ -1,117 +1,169 @@
+# Anthropoi License
 
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
+## Version 1.0 — July 2026
 
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+**This is a source-available license, not an Open Source Initiative (OSI) approved open source license.** It restricts commercial use and use by Organizations. Please do not describe Software licensed under this License as "open source" — use "source-available" instead.
 
-1. Definitions.
+### TERMS AND CONDITIONS FOR USE, MODIFICATION, CONTRIBUTION, AND REDISTRIBUTION
 
-   "License" shall mean the terms and conditions for use, reproduction,
-   and distribution as defined by Sections 1 through 9 of this document.
+---
 
-   "Licensor" shall mean the copyright owner or entity authorized by
-   the copyright owner that is granting the License.
+## 1. Definitions
 
-   "Legal Entity" shall mean the union of the acting entity and all
-   other entities that control, are controlled by, or are under common
-   control with that entity.
+**License** means this Anthropoi License Version 1.0.
 
-   "You" (or "Your") shall mean an individual or Legal Entity
-   exercising permissions granted by this License.
+**Licensor** means the copyright holder of the Software.
 
-   "Source" form shall mean the preferred form for making modifications,
-   including but not limited to software source code, documentation
-   source, and configuration files.
+**Software** means the source code, object code, documentation, configuration files, assets, examples, scripts, and any other material distributed under this License.
 
-   "Object" form shall mean any form resulting from mechanical
-   transformation or translation of a Source form, including but
-   not limited to compiled object code, generated documentation,
-   and conversions to other media types.
+**You** means the Individual exercising the rights granted by this License.
 
-   "Work" shall mean the work of authorship made available under
-   the License, as indicated by a copyright notice that is included in
-   or attached to the work.
+**Individual** means a natural person acting solely on their own behalf and not for, through, or on behalf of any Organization.
 
-   "Derivative Works" shall mean any work that is based on the Work,
-   for which the editorial revisions, annotations, elaborations, or
-   other modifications represent, as a whole, an original work of
-   authorship.
+**Organization** means any legal entity, public or private, whether for-profit or non-profit, including but not limited to corporations, companies, partnerships, startups, government bodies, public institutions, government agencies, municipalities, universities, schools, research institutions, charities, foundations, associations, cooperatives, political organizations, religious organizations, and non-governmental organizations (NGOs).
 
-   "Contribution" shall mean any work of authorship submitted to the
-   Licensor for inclusion in the Work.
+**Commercial Purpose** means any use intended for or directed toward commercial advantage or monetary compensation, including but not limited to: selling, licensing, or renting access to the Software or a Derivative Work; using the Software to provide a paid product or service to third parties; or using the Software in the course of operating a for-profit business, whether or not the Software itself is monetized directly.
 
-   "Contributor" shall mean Licensor and any Legal Entity on behalf of
-   whom a Contribution has been received by the Licensor.
+**AI Service** means any artificial intelligence, machine learning, or large language model functionality that is accessed, invoked, or executed over a network connection on infrastructure not controlled by the end user — including but not limited to cloud-based APIs, remotely hosted inference endpoints, and "AI-as-a-service" offerings — regardless of the terminology used to describe the underlying infrastructure (e.g., "supercomputer," "cloud," "cluster," "datacenter").
 
-2. Grant of Copyright License. Subject to the terms and conditions of
-   this License, each Contributor hereby grants to You a perpetual,
-   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-   copyright license to reproduce, prepare Derivative Works of,
-   publicly display, publicly perform, sublicense, and distribute the
-   Work and such Derivative Works in Source or Object form.
+**Local Model** means an artificial intelligence or machine learning model that is executed entirely on the end user's own device, with no network request made to any external server, API, or third-party infrastructure for the purpose of performing inference.
 
-3. Grant of Patent License. Subject to the terms and conditions of
-   this License, each Contributor hereby grants to You a perpetual,
-   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-   patent license to make, use, sell, offer for sale, import, and
-   otherwise transfer the Work.
+**Derivative Work** means any work based on or incorporating all or part of the Software, including modified versions.
 
-4. Redistribution. You may reproduce and distribute copies of the
-   Work or Derivative Works thereof in any medium, with or without
-   modifications, and in Source or Object form, provided that You
-   meet the following conditions:
+**Distribution** means making the Software or a Derivative Work available to another person by any means.
 
-   (a) You must give any other recipients of the Work or Derivative
-       Works a copy of this License; and
+**Contribution** means any modification, bug fix, feature, documentation, translation, or other material intentionally submitted to the Licensor for inclusion in the Software.
 
-   (b) You must cause any modified files to carry prominent notices
-       stating that You changed the files; and
+---
 
-   (c) You must retain, in the Source form of any Derivative Works
-       that You distribute, all copyright, patent, trademark, and
-       attribution notices from the Source form of the Work; and
+## 2. Permitted Use
 
-   (d) If the Work includes a "NOTICE" text file, you must include
-       a readable copy of the attribution notices contained within
-       such NOTICE file in any Derivative Works that You distribute.
+Subject to this License, the Licensor grants You a worldwide, non-exclusive, non-transferable, revocable, royalty-free copyright license to:
 
-5. Submission of Contributions. Unless You explicitly state otherwise,
-   any Contribution submitted for inclusion in the Work by You shall
-   be under the terms and conditions of this License.
+a. use the Software for personal learning, private research, experimentation, and hobby projects;
 
-6. Trademarks. This License does not grant permission to use the trade
-   names, trademarks, service marks, or product names of the Licensor.
+b. study the Software;
 
-7. Disclaimer of Warranty. Unless required by applicable law or agreed
-   to in writing, Licensor provides the Work on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-   implied.
+c. modify the Software;
 
-8. Limitation of Liability. In no event and under no legal theory,
-   whether in tort (including negligence), contract, or otherwise,
-   shall any Contributor be liable to You for damages, including any
-   direct, indirect, special, incidental, or exemplary damages of any
-   character arising as a result of this License or out of the use or
-   inability to use the Work.
+d. create Derivative Works for Your own personal use;
 
-9. Accepting Warranty or Additional Liability. While redistributing
-   the Work, You may offer acceptance of support, warranty, indemnity,
-   or other liability obligations consistent with this License.
+e. clone and fork the repository;
 
-END OF TERMS AND CONDITIONS
+f. submit Contributions to the Licensor;
 
-Copyright 2026 Angel (angellnx)
-https://github.com/angellnx
+g. redistribute the Software, substantially as such, or Derivative Works, in accordance with Section 4.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+No rights are granted except those expressly provided by this License.
 
-    http://www.apache.org/licenses/LICENSE-2.0
+---
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-implied. See the License for the specific language governing
-permissions and limitations under the License.
+## 3. Prohibited Uses
+
+Without the Licensor's prior written permission, You may not:
+
+a. use the Software for any Commercial Purpose;
+
+b. use the Software directly or indirectly on behalf of an Organization, including as an employee, contractor, officer, or agent acting within the scope of that role;
+
+c. allow an Organization to use or rely upon the Software in the course of its operations;
+
+d. sell, rent, lease, sublicense, or commercially distribute the Software;
+
+e. provide the Software as a hosted, managed, cloud, or software-as-a-service offering;
+
+f. embed or incorporate the Software, in whole or in part, as a component or dependency of another software product that is itself distributed or made available to third parties — as distinguished from redistributing the Software or a Derivative Work substantially as such under Section 2(g);
+
+g. remove, alter, or obscure any copyright, attribution, or license notice;
+
+h. claim authorship of the Software;
+
+i. distribute the Software under another license;
+
+j. integrate, call, invoke, connect to, or otherwise attach any AI Service to or within the Software or a Derivative Work, whether directly, through an intermediary library or plugin, or through any other mechanism. The Software and any Derivative Work may only integrate Local Models. This restriction applies to all use of the Software and Derivative Works, including personal use.
+
+---
+
+## 4. Redistribution
+
+You may redistribute the Software or Derivative Works only if:
+
+a. this License accompanies every copy;
+
+b. all copyright and attribution notices are preserved;
+
+c. modified files clearly identify that changes have been made;
+
+d. the entire redistributed work remains licensed under this License.
+
+---
+
+## 5. Contributions
+
+Unless otherwise agreed in writing:
+
+a. You retain copyright ownership of Your Contributions;
+
+b. You grant the Licensor a perpetual, worldwide, irrevocable, royalty-free, non-exclusive license to use, modify, reproduce, distribute, sublicense, relicense, and incorporate Your Contributions into the Software and future versions of the Software, including under different license terms than this License;
+
+c. the Licensor may accept, reject, modify, or remove any Contribution at its sole discretion.
+
+---
+
+## 6. Intellectual Property and Patents
+
+a. Subject to the terms of this License, the Licensor grants You a worldwide, non-exclusive, royalty-free patent license to make, use, and redistribute the Software, solely to the extent necessary to exercise the rights granted in Section 2, covering only those patent claims licensable by the Licensor that are necessarily infringed by the Software as distributed by the Licensor.
+
+b. If You institute patent litigation against the Licensor or any Contributor alleging that the Software or a Contribution infringes a patent You own or control, the patent license granted to You under Section 6(a) terminates immediately.
+
+c. Except for the rights expressly granted in this Section 6, no trademark, trade secret, or other intellectual property rights are granted by this License.
+
+---
+
+## 7. Trademarks
+
+This License does not grant permission to use the Licensor's or the Project's names, logos, trademarks, branding, or visual identity except when reasonably necessary to identify the original Software.
+
+---
+
+## 8. Disclaimer of Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, ACCURACY, OR NON-INFRINGEMENT.
+
+---
+
+## 9. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSOR AND CONTRIBUTORS SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING FROM THE SOFTWARE OR THIS LICENSE.
+
+---
+
+## 10. Termination
+
+Any violation of this License terminates the rights granted under it thirty (30) days after the Licensor notifies You of the violation, unless You cure the violation within that period. If cured within that period, the rights granted under this License continue in effect.
+
+Upon termination, You must immediately cease using, copying, modifying, and distributing the Software and destroy all copies in Your possession unless the Licensor provides written authorization to continue.
+
+---
+
+## 11. Severability
+
+If any provision of this License is held to be invalid or unenforceable under applicable law, the remaining provisions shall remain in full force and effect.
+
+---
+
+## 12. Governing Law
+
+This License shall be governed by the laws of the Federative Republic of Brazil, without regard to conflict of law rules.
+
+---
+
+## 13. Acceptance
+
+By using, copying, modifying, contributing to, or distributing the Software, You acknowledge that You have read, understood, and agree to be bound by this License.
+
+---
+
+Copyright (c) 2026 angellnx
+
+Licensed under the Anthropoi License Version 1.0.

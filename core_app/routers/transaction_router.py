@@ -3,6 +3,7 @@
 Exposes CRUD operations for financial transactions as REST endpoints.
 Transactions record income and expense movements affecting account balances.
 """
+
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from core_app.services.transaction_service import TransactionService
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 def create_transaction(
     body: TransactionRequest,
     service: TransactionService = Depends(get_transaction_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     try:
         transaction = service.create_transaction(
@@ -28,17 +29,17 @@ def create_transaction(
             currency_code=body.currency_code,
             value=body.value,
             date=body.date,
-            notes=body.notes
+            notes=body.notes,
         )
         return TransactionResponse(
             id=transaction.id,
             date=transaction.date,
             value=transaction.value,
             transaction_type_name=transaction.transaction_type.name,
-            user_id=transaction.user_id,
+            account_id=transaction.account_id,
             item_id=transaction.item_id,
             currency_code=transaction.currency_code,
-            notes=transaction.notes
+            notes=transaction.notes,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -53,7 +54,7 @@ def list_transactions(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     skip: int = 0,
-    limit: int = 20
+    limit: int = 20,
 ):
     """List transactions for the authenticated user with optional filters.
 
@@ -77,10 +78,10 @@ def list_transactions(
                 date=t.date,
                 value=t.value,
                 transaction_type_name=t.transaction_type.name,
-                user_id=t.user_id,
+                account_id=t.account_id,
                 item_id=t.item_id,
                 currency_code=t.currency_code,
-                notes=t.notes
+                notes=t.notes,
             )
             for t in service.list_transactions_by_user(
                 user_id=current_user.id,
@@ -89,7 +90,7 @@ def list_transactions(
                 date_from=date_from,
                 date_to=date_to,
                 skip=skip,
-                limit=limit
+                limit=limit,
             )
         ]
     except ValueError as e:
@@ -100,7 +101,7 @@ def list_transactions(
 def get_transaction(
     transaction_id: int,
     service: TransactionService = Depends(get_transaction_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     try:
         t = service.get_transaction(transaction_id)
@@ -109,10 +110,10 @@ def get_transaction(
             date=t.date,
             value=t.value,
             transaction_type_name=t.transaction_type.name,
-            user_id=t.user_id,
+            account_id=t.account_id,
             item_id=t.item_id,
             currency_code=t.currency_code,
-            notes=t.notes
+            notes=t.notes,
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -122,7 +123,7 @@ def get_transaction(
 def delete_transaction(
     transaction_id: int,
     service: TransactionService = Depends(get_transaction_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     try:
         service.delete_transaction(transaction_id)
